@@ -1,0 +1,25 @@
+# Forge CLI - Docker Compose for Testing
+# Run: docker-compose up --build
+
+services:
+  forge-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: forge-cli-test
+    volumes:
+      - ./tests:/home/forge/app/tests:ro
+    tty: true
+    stdin_open: true
+    command: ["pytest", "-v", "--tb=short", "tests/"]
+
+  forge-interactive:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: forge-cli-interactive
+    tty: true
+    stdin_open: true
+    command: ["python", "-m", "forge"]
+    profiles:
+      - interactive

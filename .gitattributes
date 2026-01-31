@@ -1,0 +1,52 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Python files
+*.py text diff=python
+*.pyw text diff=python
+*.pyx text diff=python
+*.pxd text diff=python
+
+# Shell scripts
+*.sh text eol=lf
+install.sh text eol=lf
+
+# Docker
+Dockerfile text
+docker-compose.yml text
+*.dockerfile text
+
+# Configuration files
+*.ini text
+*.cfg text
+*.toml text
+*.yaml text
+*.yml text
+*.json text
+
+# Documentation
+*.md text diff=markdown
+*.txt text
+*.rst text
+
+# Batch files should use CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.gz binary
+*.zip binary
+*.7z binary
+*.tar binary
+*.pdf binary
+
+# Certificates
+*.pem binary
+*.crt binary
+*.key binary
