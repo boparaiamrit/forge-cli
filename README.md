@@ -76,7 +76,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/forge-cli.git
+git clone https://github.com/boparaiamrit/forge-cli.git
 cd forge-cli
 
 # Create and activate virtual environment
@@ -93,7 +93,7 @@ pip install -e .
 ### Method 2: One-Line Installer
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/yourusername/forge-cli/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/boparaiamrit/forge-cli/main/install.sh | bash
 ```
 
 ### Method 3: Docker (For Testing)
@@ -532,7 +532,7 @@ forge-cli/
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/forge-cli.git
+git clone https://github.com/boparaiamrit/forge-cli.git
 cd forge-cli
 
 # Create virtual environment
