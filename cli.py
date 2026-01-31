@@ -126,8 +126,8 @@ def get_questionary_style():
         ("pointer", "fg:cyan bold"),
         ("highlighted", "fg:cyan bold"),
         ("selected", "fg:green"),
-        ("separator", "fg:bright_black"),
-        ("instruction", "fg:bright_black"),
+        ("separator", "fg:ansigray"),
+        ("instruction", "fg:ansigray"),
     ])
 
 
