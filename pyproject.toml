@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "forge-cli"
-version = "0.9.0"
+version = "0.10.0"
 description = "Server Management CLI - Like Laravel Forge, but for your terminal"
 readme = "README.md"
 license = {text = "MIT"}
@@ -47,7 +47,7 @@ Homepage = "https://github.com/boparaiamrit/forge-cli"
 
 [tool.setuptools]
 py-modules = ["cli", "__init__", "__main__"]
-packages = ["detectors", "installers", "provisioning", "services", "sites", "sslcerts", "utils", "state", "logs", "monitor", "diagnostics", "nginx", "php", "cron", "security", "auditor", "cve", "disk", "alerts"]
+packages = ["detectors", "installers", "provisioning", "services", "sites", "sslcerts", "utils", "state", "logs", "monitor", "diagnostics", "nginx", "php", "cron", "security", "auditor", "cve", "disk", "alerts", "updater"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

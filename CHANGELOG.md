@@ -5,6 +5,16 @@ All notable changes to Forge CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-02-01
+
+### Added
+- **Self-Update Module** - Check for and install updates from within the CLI
+  - Check latest version from GitHub
+  - Compare semantic versions
+  - Update via git pull (for source installs) or pip upgrade
+  - Shows changelog link after update
+  - Startup update check (silent, non-blocking)
+
 ## [0.9.0] - 2026-02-01
 
 ### Added

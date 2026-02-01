@@ -28,6 +28,7 @@ from auditor import run_auditor_menu
 from cve import run_cve_menu
 from disk import run_disk_menu
 from alerts import run_alerts_menu
+from updater import run_updater_menu, get_current_version, startup_update_check
 from state import get_recent_changes, export_lineage_report
 
 console = Console()
@@ -57,6 +58,7 @@ MAIN_MENU_CHOICES = [
     {"name": "📊  Monitoring & Alerts", "value": "alerts"},
     questionary.Separator("─" * 30),
     {"name": "📋  State History", "value": "history"},
+    {"name": "🔄  Check for Updates", "value": "update"},
     {"name": "❌  Exit", "value": "exit"},
 ]
 
@@ -117,6 +119,8 @@ def handle_main_menu_choice(choice: str):
         run_alerts_menu()
     elif choice == "history":
         show_state_history()
+    elif choice == "update":
+        run_updater_menu()
 
 
 

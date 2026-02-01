@@ -39,22 +39,42 @@ if [ ! -d "venv" ]; then
 fi
 
 # Activate and install
+echo "📦 Installing dependencies..."
 source venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-pip install -e .
+pip install --upgrade pip --quiet
+pip install -r requirements.txt --quiet
 
-# Create symlink
+# Reinstall the package (force reinstall to pick up new modules)
+echo "📦 Installing Forge CLI package..."
+pip uninstall forge-cli -y 2>/dev/null || true
+pip install -e . --quiet
+
+# Create wrapper script instead of symlink
+# This ensures proper PYTHONPATH is set
 FORGE_BIN="/usr/local/bin/forge"
-if [ -L "$FORGE_BIN" ]; then
+WRAPPER_SCRIPT="$INSTALL_DIR/forge-cli/forge-wrapper.sh"
+
+cat > "$WRAPPER_SCRIPT" << 'EOF'
+#!/bin/bash
+INSTALL_DIR="$HOME/.forge/forge-cli"
+source "$INSTALL_DIR/venv/bin/activate"
+cd "$INSTALL_DIR"
+python -m cli "$@"
+EOF
+
+chmod +x "$WRAPPER_SCRIPT"
+
+# Remove old symlink/file and create new one
+if [ -L "$FORGE_BIN" ] || [ -f "$FORGE_BIN" ]; then
     sudo rm "$FORGE_BIN"
 fi
 
-echo "🔗 Creating symlink..."
-sudo ln -s "$INSTALL_DIR/forge-cli/venv/bin/forge" "$FORGE_BIN"
+echo "🔗 Creating forge command..."
+sudo ln -s "$WRAPPER_SCRIPT" "$FORGE_BIN"
 
 echo ""
 echo "✅ Forge CLI installed successfully!"
 echo ""
 echo "   Run 'forge' to start."
 echo ""
+
