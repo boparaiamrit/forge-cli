@@ -9,6 +9,12 @@ from rich.text import Text
 
 console = Console()
 
+# Import version - use try/except for circular import safety
+try:
+    from updater import CURRENT_VERSION
+except ImportError:
+    CURRENT_VERSION = "0.10.1"
+
 LOGO = """
 ███████╗ ██████╗ ██████╗  ██████╗ ███████╗
 ██╔════╝██╔═══██╗██╔══██╗██╔════╝ ██╔════╝
@@ -28,7 +34,7 @@ def print_header():
     """Print the Forge header/logo."""
     console.print(Text(LOGO, style="bold cyan"))
     console.print(
-        "[dim]Server Management CLI • v1.0.0[/dim]",
+        f"[dim]Server Management CLI • v{CURRENT_VERSION}[/dim]",
         justify="center",
     )
     console.print()
