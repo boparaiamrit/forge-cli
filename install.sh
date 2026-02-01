@@ -28,7 +28,7 @@ if [ -d "$INSTALL_DIR/forge-cli" ]; then
     git pull origin main
 else
     echo "📥 Downloading Forge..."
-    git clone https://github.com/boparaiamrit/forge-cli.git "$INSTALL_DIR/forge-cli"
+    git clone git@github.com:boparaiamrit/forge-cli.git "$INSTALL_DIR/forge-cli"
     cd "$INSTALL_DIR/forge-cli"
 fi
 
