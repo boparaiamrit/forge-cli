@@ -173,6 +173,27 @@ docker run --rm forge-cli pytest -v tests/
 docker run -it forge-cli forge
 ```
 
+### Updating
+
+**From the CLI (recommended):**
+```bash
+forge
+# Select "🔄 Check for Updates" from the menu
+```
+
+**Manual update:**
+```bash
+cd ~/.forge/forge-cli
+git pull
+source venv/bin/activate
+pip install -e .
+```
+
+**Full reinstall:**
+```bash
+curl -sSL https://raw.githubusercontent.com/boparaiamrit/forge-cli/main/install.sh | bash
+```
+
 ---
 
 ## 🎯 Quick Start
@@ -186,7 +207,7 @@ forge
 ### Main Menu Options
 
 ```
-🔧 Forge CLI v0.8.0
+🔧 Forge CLI v0.10.1
 ─────────────────────────────────
 
 What would you like to do?
