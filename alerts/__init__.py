@@ -52,21 +52,21 @@ DEFAULT_THRESHOLDS = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 ALERTS_MENU_CHOICES = [
-    {"name": "📊  Current System Status", "value": "status"},
-    {"name": "📈  Resource Usage History", "value": "history"},
+    {"name": "📊 Current System Status", "value": "status"},
+    {"name": "📈 Resource Usage History", "value": "history"},
     questionary.Separator("─" * 30),
-    {"name": "🔔  View Active Alerts", "value": "view_alerts"},
-    {"name": "📋  Alert History", "value": "alert_history"},
-    {"name": "✅  Acknowledge All Alerts", "value": "ack_alerts"},
+    {"name": "🔔 View Active Alerts", "value": "view_alerts"},
+    {"name": "📋 Alert History", "value": "alert_history"},
+    {"name": "✅ Acknowledge All Alerts", "value": "ack_alerts"},
     questionary.Separator("─" * 30),
-    {"name": "⚙️   Configure Thresholds", "value": "thresholds"},
-    {"name": "⏰  Setup Monitoring Cron", "value": "setup_cron"},
-    {"name": "📧  Configure Notifications", "value": "notifications"},
+    {"name": "⚙️ Configure Thresholds", "value": "thresholds"},
+    {"name": "⏰ Setup Monitoring Cron", "value": "setup_cron"},
+    {"name": "📧 Configure Notifications", "value": "notifications"},
     questionary.Separator("─" * 30),
-    {"name": "🔄  Record Current Metrics", "value": "record"},
-    {"name": "📉  Clear History", "value": "clear_history"},
+    {"name": "🔄 Record Current Metrics", "value": "record"},
+    {"name": "📉 Clear History", "value": "clear_history"},
     questionary.Separator("─" * 30),
-    {"name": "⬅️   Back", "value": "back"},
+    {"name": "⬅️ Back", "value": "back"},
 ]
 
 

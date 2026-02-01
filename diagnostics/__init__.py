@@ -23,14 +23,14 @@ console = Console()
 # ═══════════════════════════════════════════════════════════════════════════════
 
 DIAGNOSTICS_MENU_CHOICES = [
-    {"name": "🔍  Nginx Config Test", "value": "nginx_test"},
-    {"name": "🐘  PHP-FPM Check", "value": "php_check"},
-    {"name": "📁  Permission Check", "value": "permissions"},
-    {"name": "🔌  Port Conflicts", "value": "ports"},
-    {"name": "🚨  Common Errors", "value": "errors"},
-    {"name": "🔧  Auto-Fix Issues", "value": "autofix"},
+    {"name": "🔍 Nginx Config Test", "value": "nginx_test"},
+    {"name": "🐘 PHP-FPM Check", "value": "php_check"},
+    {"name": "📁 Permission Check", "value": "permissions"},
+    {"name": "🔌 Port Conflicts", "value": "ports"},
+    {"name": "🚨 Common Errors", "value": "errors"},
+    {"name": "🔧 Auto-Fix Issues", "value": "autofix"},
     questionary.Separator("─" * 30),
-    {"name": "⬅️   Back", "value": "back"},
+    {"name": "⬅️ Back", "value": "back"},
 ]
 
 

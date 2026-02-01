@@ -5,6 +5,24 @@ All notable changes to Forge CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.1] - 2026-02-01
+
+### Added
+- **More Package Installers** - MariaDB, Memcached, Supervisor, Docker, Docker Compose
+- **PHP Versions** - Added PHP 8.5, 8.4, 8.1, 8.0, 7.4 installers
+- **Import Tests** - Comprehensive import verification tests
+- **Forge Icon** - New project icon for branding
+
+### Fixed
+- **Panel Import** - Fixed missing Panel import in sites module
+- **Menu Spacing** - Normalized spacing in all menu items
+- **Install Script** - Improved installer with wrapper script for proper module loading
+
+### Changed
+- **Installer Menu** - Organized with section separators (PHP, Databases, Tools)
+- **README** - Updated with banner, icon, and improved header
+- **ROADMAP** - Updated to reflect completed features
+
 ## [0.10.0] - 2026-02-01
 
 ### Added

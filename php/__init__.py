@@ -137,16 +137,16 @@ EXTENSION_BUNDLES = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 PHP_MENU_CHOICES = [
-    {"name": "📋  View Installed PHP", "value": "status"},
-    {"name": "📥  Install PHP Version", "value": "install_version"},
-    {"name": "🔌  Install Extensions", "value": "install_ext"},
-    {"name": "📦  Install Bundle", "value": "install_bundle"},
-    {"name": "🔍  Check Extensions", "value": "check_ext"},
+    {"name": "📋 View Installed PHP", "value": "status"},
+    {"name": "📥 Install PHP Version", "value": "install_version"},
+    {"name": "🔌 Install Extensions", "value": "install_ext"},
+    {"name": "📦 Install Bundle", "value": "install_bundle"},
+    {"name": "🔍 Check Extensions", "value": "check_ext"},
     questionary.Separator("─" * 30),
-    {"name": "⚙️   Configure PHP-FPM", "value": "configure"},
-    {"name": "🔄  Switch Default PHP", "value": "switch"},
+    {"name": "⚙️ Configure PHP-FPM", "value": "configure"},
+    {"name": "🔄 Switch Default PHP", "value": "switch"},
     questionary.Separator("─" * 30),
-    {"name": "⬅️   Back", "value": "back"},
+    {"name": "⬅️ Back", "value": "back"},
 ]
 
 
@@ -335,7 +335,7 @@ def install_php_version():
             {"name": "🔷 Laravel Essentials (recommended)", "value": "laravel"},
             {"name": "📦 Basic Web Server", "value": "basic"},
             {"name": "🎯 Full Stack (all extensions)", "value": "full"},
-            {"name": "⚙️  Minimal (CLI + FPM only)", "value": "minimal"},
+            {"name": "⚙️ Minimal (CLI + FPM only)", "value": "minimal"},
             {"name": "🔧 Custom selection", "value": "custom"},
         ],
     ).ask()
@@ -847,11 +847,11 @@ def configure_php_fpm():
         choices=[
             {"name": "🔧 Increase memory limit", "value": "memory"},
             {"name": "📤 Increase upload size", "value": "upload"},
-            {"name": "⏱️  Increase execution time", "value": "time"},
+            {"name": "⏱️ Increase execution time", "value": "time"},
             {"name": "🚀 Apply production optimizations", "value": "production"},
             {"name": "⚡ Smart Pool Configuration", "value": "smart_pool"},
             {"name": "🔧 Custom Pool Configuration", "value": "custom_pool"},
-            {"name": "⬅️  Cancel", "value": None},
+            {"name": "⬅️ Cancel", "value": None},
         ],
     ).ask()
 

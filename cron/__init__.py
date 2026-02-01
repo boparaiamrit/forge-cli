@@ -26,18 +26,18 @@ console = Console()
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CRON_MENU_CHOICES = [
-    {"name": "📋  List Cron Jobs", "value": "list"},
-    {"name": "➕  Add Cron Job", "value": "add"},
-    {"name": "🗑️   Remove Cron Job", "value": "remove"},
+    {"name": "📋 List Cron Jobs", "value": "list"},
+    {"name": "➕ Add Cron Job", "value": "add"},
+    {"name": "🗑️ Remove Cron Job", "value": "remove"},
     questionary.Separator("─" * 30),
-    {"name": "🔒  SSL Auto-Renewal", "value": "ssl_renewal"},
-    {"name": "🧹  Cleanup Jobs", "value": "cleanup"},
-    {"name": "📊  Backup Jobs", "value": "backup"},
+    {"name": "🔒 SSL Auto-Renewal", "value": "ssl_renewal"},
+    {"name": "🧹 Cleanup Jobs", "value": "cleanup"},
+    {"name": "📊 Backup Jobs", "value": "backup"},
     questionary.Separator("─" * 30),
-    {"name": "📝  Edit Crontab", "value": "edit"},
-    {"name": "🔄  Reload Cron", "value": "reload"},
+    {"name": "📝 Edit Crontab", "value": "edit"},
+    {"name": "🔄 Reload Cron", "value": "reload"},
     questionary.Separator("─" * 30),
-    {"name": "⬅️   Back", "value": "back"},
+    {"name": "⬅️ Back", "value": "back"},
 ]
 
 # Common cron schedules
@@ -270,7 +270,7 @@ def add_cron_job():
         "Select schedule:",
         choices=[
             {"name": "📅 Use preset schedule", "value": "preset"},
-            {"name": "✏️  Custom cron expression", "value": "custom"},
+            {"name": "✏️ Custom cron expression", "value": "custom"},
         ],
     ).ask()
 

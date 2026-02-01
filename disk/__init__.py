@@ -56,26 +56,26 @@ LOG_DIRS = [
 # ═══════════════════════════════════════════════════════════════════════════════
 
 DISK_MENU_CHOICES = [
-    {"name": "📊  Disk Space Overview", "value": "overview"},
-    {"name": "📁  Directory Size Analysis", "value": "analyze"},
+    {"name": "📊 Disk Space Overview", "value": "overview"},
+    {"name": "📁 Directory Size Analysis", "value": "analyze"},
     questionary.Separator("─" * 30),
-    {"name": "🧹  Quick Cleanup", "value": "quick_cleanup"},
-    {"name": "🗑️   Deep Cleanup", "value": "deep_cleanup"},
-    {"name": "📦  Clean APT Cache", "value": "apt_cleanup"},
-    {"name": "🐳  Clean Docker", "value": "docker_cleanup"},
+    {"name": "🧹 Quick Cleanup", "value": "quick_cleanup"},
+    {"name": "🗑️ Deep Cleanup", "value": "deep_cleanup"},
+    {"name": "📦 Clean APT Cache", "value": "apt_cleanup"},
+    {"name": "🐳 Clean Docker", "value": "docker_cleanup"},
     questionary.Separator("─" * 30),
-    {"name": "📜  Log Rotation Status", "value": "log_rotation"},
-    {"name": "🔄  Rotate Logs Now", "value": "rotate_now"},
-    {"name": "📋  Large Log Files", "value": "large_logs"},
+    {"name": "📜 Log Rotation Status", "value": "log_rotation"},
+    {"name": "🔄 Rotate Logs Now", "value": "rotate_now"},
+    {"name": "📋 Large Log Files", "value": "large_logs"},
     questionary.Separator("─" * 30),
-    {"name": "🔍  Find Large Files", "value": "find_large"},
-    {"name": "📅  Find Old Files", "value": "find_old"},
-    {"name": "📂  Duplicate Files", "value": "duplicates"},
+    {"name": "🔍 Find Large Files", "value": "find_large"},
+    {"name": "📅 Find Old Files", "value": "find_old"},
+    {"name": "📂 Duplicate Files", "value": "duplicates"},
     questionary.Separator("─" * 30),
-    {"name": "💾  Swap Management", "value": "swap"},
-    {"name": "⏰  Setup Cleanup Cron", "value": "setup_cron"},
+    {"name": "💾 Swap Management", "value": "swap"},
+    {"name": "⏰ Setup Cleanup Cron", "value": "setup_cron"},
     questionary.Separator("─" * 30),
-    {"name": "⬅️   Back", "value": "back"},
+    {"name": "⬅️ Back", "value": "back"},
 ]
 
 
@@ -515,8 +515,8 @@ def clean_docker():
         "Select cleanup type:",
         choices=[
             {"name": "🧹 Safe cleanup (unused images, containers, networks)", "value": "safe"},
-            {"name": "🗑️  Aggressive cleanup (includes build cache)", "value": "aggressive"},
-            {"name": "⬅️  Cancel", "value": None},
+            {"name": "🗑️ Aggressive cleanup (includes build cache)", "value": "aggressive"},
+            {"name": "⬅️ Cancel", "value": None},
         ],
     ).ask()
 
@@ -862,8 +862,8 @@ def manage_swap():
         choices=[
             {"name": f"➕ Create swap file ({recommended_swap} recommended)", "value": "create"},
             {"name": "🔧 Adjust swappiness", "value": "swappiness"},
-            {"name": "🗑️  Remove swap", "value": "remove"},
-            {"name": "⬅️  Back", "value": None},
+            {"name": "🗑️ Remove swap", "value": "remove"},
+            {"name": "⬅️ Back", "value": None},
         ],
     ).ask()
 

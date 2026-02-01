@@ -74,3 +74,44 @@ When making changes to Forge CLI, follow these versioning guidelines:
 3. Add CHANGELOG entry
 4. Run tests: `docker build -t forge-cli-test . && docker run --rm forge-cli-test`
 5. Commit with message: `vX.X.X: Brief description`
+
+## PowerShell Command Guidelines
+
+When running commands on Windows PowerShell, follow these rules:
+
+### DO NOT
+- Use long commit messages with multiple lines (use short single-line messages)
+- Chain multiple Python imports with semicolons in one command
+- Use complex shell commands with special characters
+- Use multi-line strings in command arguments
+
+### DO
+- Keep commit messages short: `git commit -m "v0.10.0: Brief description"`
+- Create temporary test scripts instead of inline Python code
+- Use simple, single-purpose commands
+- Break complex operations into multiple steps
+
+### Examples
+
+**BAD (too long, will fail):**
+```powershell
+git commit -m "v0.10.0: Feature 1
+- Detail 1
+- Detail 2"
+```
+
+**GOOD (short message):**
+```powershell
+git commit -m "v0.10.0: Add feature X"
+```
+
+**BAD (inline Python with semicolons):**
+```powershell
+python -c "import foo; import bar; print('ok')"
+```
+
+**GOOD (use test file or separate command):**
+```powershell
+docker run --rm forge-cli-test pytest tests/ -v
+```
+

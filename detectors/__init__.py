@@ -135,7 +135,7 @@ def detect_mysql() -> SoftwareStatus:
     is_mysql = command_exists("mysql")
 
     if not is_mysql:
-        return {"name": "🗄️  MySQL", "installed": False, "version": None, "details": None}
+        return {"name": "🗄️ MySQL", "installed": False, "version": None, "details": None}
 
     output = get_command_output("mysql --version")
     version = None

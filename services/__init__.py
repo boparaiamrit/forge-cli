@@ -121,22 +121,22 @@ SERVICE_CATEGORIES = {
 
 
 SERVICE_MENU_CHOICES = [
-    {"name": "📊  Service Dashboard", "value": "dashboard"},
-    {"name": "📋  All Services Status", "value": "status"},
+    {"name": "📊 Service Dashboard", "value": "dashboard"},
+    {"name": "📋 All Services Status", "value": "status"},
     questionary.Separator("─" * 30),
-    {"name": "▶️   Start Service", "value": "start"},
-    {"name": "⏹️   Stop Service", "value": "stop"},
-    {"name": "🔄  Restart Service", "value": "restart"},
-    {"name": "↻   Reload Service", "value": "reload"},
+    {"name": "▶️ Start Service", "value": "start"},
+    {"name": "⏹️ Stop Service", "value": "stop"},
+    {"name": "🔄 Restart Service", "value": "restart"},
+    {"name": "↻ Reload Service", "value": "reload"},
     questionary.Separator("─" * 30),
-    {"name": "🔧  Enable on Boot", "value": "enable"},
-    {"name": "❌  Disable on Boot", "value": "disable"},
+    {"name": "🔧 Enable on Boot", "value": "enable"},
+    {"name": "❌ Disable on Boot", "value": "disable"},
     questionary.Separator("─" * 30),
-    {"name": "📜  View Service Logs", "value": "logs"},
-    {"name": "ℹ️   Service Details", "value": "details"},
-    {"name": "🔍  Find Services", "value": "find"},
+    {"name": "📜 View Service Logs", "value": "logs"},
+    {"name": "ℹ️ Service Details", "value": "details"},
+    {"name": "🔍 Find Services", "value": "find"},
     questionary.Separator("─" * 30),
-    {"name": "⬅️   Back", "value": "back"},
+    {"name": "⬅️ Back", "value": "back"},
 ]
 
 
@@ -246,9 +246,9 @@ def show_service_dashboard():
         choices=[
             {"name": "🔄 Restart All PHP-FPM", "value": "restart_php"},
             {"name": "🌐 Restart Web Server", "value": "restart_web"},
-            {"name": "🗄️  Restart Databases", "value": "restart_db"},
-            {"name": "↻  Reload All Services", "value": "reload_all"},
-            {"name": "⬅️  Back", "value": "back"},
+            {"name": "🗄️ Restart Databases", "value": "restart_db"},
+            {"name": "↻ Reload All Services", "value": "reload_all"},
+            {"name": "⬅️ Back", "value": "back"},
         ],
     ).ask()
 

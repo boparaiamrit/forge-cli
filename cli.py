@@ -222,7 +222,7 @@ def show_state_history():
         "Options:",
         choices=[
             {"name": "📄 Export Full Report", "value": "export"},
-            {"name": "⬅️  Back", "value": "back"},
+            {"name": "⬅️ Back", "value": "back"},
         ],
     ).ask()
 

@@ -61,14 +61,14 @@ LEVEL_COLORS = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 LOG_MENU_CHOICES = [
-    {"name": "🌐  Nginx Access Logs", "value": "nginx_access"},
-    {"name": "❌  Nginx Error Logs", "value": "nginx_error"},
-    {"name": "🌍  Site-Specific Logs", "value": "site"},
-    {"name": "🔴  Real-Time Monitor", "value": "live"},
-    {"name": "🔍  Search Logs", "value": "search"},
-    {"name": "📊  Error Summary", "value": "summary"},
+    {"name": "🌐 Nginx Access Logs", "value": "nginx_access"},
+    {"name": "❌ Nginx Error Logs", "value": "nginx_error"},
+    {"name": "🌍 Site-Specific Logs", "value": "site"},
+    {"name": "🔴 Real-Time Monitor", "value": "live"},
+    {"name": "🔍 Search Logs", "value": "search"},
+    {"name": "📊 Error Summary", "value": "summary"},
     questionary.Separator("─" * 30),
-    {"name": "⬅️   Back", "value": "back"},
+    {"name": "⬅️ Back", "value": "back"},
 ]
 
 

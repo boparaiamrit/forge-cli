@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "forge-cli"
-version = "0.10.0"
+version = "0.10.1"
 description = "Server Management CLI - Like Laravel Forge, but for your terminal"
 readme = "README.md"
 license = {text = "MIT"}

@@ -30,14 +30,14 @@ console = Console()
 # ═══════════════════════════════════════════════════════════════════════════════
 
 MONITOR_MENU_CHOICES = [
-    {"name": "💻  System Overview", "value": "system"},
-    {"name": "🌐  Network & IPs", "value": "network"},
-    {"name": "🔌  Listening Ports", "value": "ports"},
-    {"name": "🏥  Site Health Check", "value": "health"},
-    {"name": "🔒  SSL Certificate Check", "value": "ssl"},
-    {"name": "📊  Live Dashboard", "value": "live"},
+    {"name": "💻 System Overview", "value": "system"},
+    {"name": "🌐 Network & IPs", "value": "network"},
+    {"name": "🔌 Listening Ports", "value": "ports"},
+    {"name": "🏥 Site Health Check", "value": "health"},
+    {"name": "🔒 SSL Certificate Check", "value": "ssl"},
+    {"name": "📊 Live Dashboard", "value": "live"},
     questionary.Separator("─" * 30),
-    {"name": "⬅️   Back", "value": "back"},
+    {"name": "⬅️ Back", "value": "back"},
 ]
 
 

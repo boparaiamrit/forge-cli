@@ -167,15 +167,15 @@ PHP_RECOMMENDED_SETTINGS = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 AUDITOR_MENU_CHOICES = [
-    {"name": "🔍  Audit All Configurations", "value": "audit_all"},
+    {"name": "🔍 Audit All Configurations", "value": "audit_all"},
     questionary.Separator("─" * 30),
-    {"name": "🌐  Audit Nginx Sites", "value": "audit_nginx"},
-    {"name": "🐘  Audit PHP Configuration", "value": "audit_php"},
-    {"name": "⚙️   Audit Services", "value": "audit_services"},
-    {"name": "🔒  Audit Security", "value": "audit_security"},
+    {"name": "🌐 Audit Nginx Sites", "value": "audit_nginx"},
+    {"name": "🐘 Audit PHP Configuration", "value": "audit_php"},
+    {"name": "⚙️ Audit Services", "value": "audit_services"},
+    {"name": "🔒 Audit Security", "value": "audit_security"},
     questionary.Separator("─" * 30),
-    {"name": "🛠️   Quick Fix All Issues", "value": "fix_all"},
-    {"name": "⬅️   Back", "value": "back"},
+    {"name": "🛠️ Quick Fix All Issues", "value": "fix_all"},
+    {"name": "⬅️ Back", "value": "back"},
 ]
 
 

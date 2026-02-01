@@ -1,9 +1,27 @@
-# 🔧 Forge CLI
+<p align="center">
+  <img src="assets/forge-icon.png" alt="Forge CLI" width="120" height="120">
+</p>
 
-A comprehensive, production-ready server management CLI for Ubuntu servers. Forge CLI simplifies the process of setting up, configuring, and maintaining web servers with support for PHP, Node.js, SSL certificates, and more.
+<h1 align="center">🔧 Forge CLI</h1>
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+  <strong>Server Management CLI for Ubuntu</strong><br>
+  <em>Like Laravel Forge, but for your terminal</em>
+</p>
+
+<p align="center">
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://github.com/boparaiamrit/forge-cli/releases"><img src="https://img.shields.io/badge/version-0.10.0-green.svg" alt="Version"></a>
+</p>
+
+<p align="center">
+  A comprehensive, production-ready server management CLI for Ubuntu servers.<br>
+  Forge CLI simplifies the process of setting up, configuring, and maintaining web servers<br>
+  with support for PHP, Node.js, SSL certificates, and more.
+</p>
+
+---
 
 ## ✨ Features
 

@@ -7,6 +7,7 @@ import questionary
 from datetime import datetime
 from rich.console import Console
 from rich.table import Table
+from rich.panel import Panel
 from rich import box
 
 from utils.ui import (
@@ -30,17 +31,17 @@ SITES_ENABLED = "/etc/nginx/sites-enabled"
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SITES_MENU_CHOICES = [
-    {"name": "📋  List Sites", "value": "list"},
-    {"name": "➕  Create Site", "value": "create"},
-    {"name": "🔒  Provision SSL", "value": "ssl"},
-    {"name": "📜  View Site Logs", "value": "logs"},
-    {"name": "👁️   View Configuration", "value": "view_config"},
-    {"name": "🏥  Health Check", "value": "health"},
+    {"name": "📋 List Sites", "value": "list"},
+    {"name": "➕ Create Site", "value": "create"},
+    {"name": "🔒 Provision SSL", "value": "ssl"},
+    {"name": "📜 View Site Logs", "value": "logs"},
+    {"name": "👁️ View Configuration", "value": "view_config"},
+    {"name": "🏥 Health Check", "value": "health"},
     questionary.Separator("─" * 30),
-    {"name": "🔄  Enable/Disable Site", "value": "toggle"},
-    {"name": "🗑️   Delete Site", "value": "delete"},
+    {"name": "🔄 Enable/Disable Site", "value": "toggle"},
+    {"name": "🗑️ Delete Site", "value": "delete"},
     questionary.Separator("─" * 30),
-    {"name": "⬅️   Back", "value": "back"},
+    {"name": "⬅️ Back", "value": "back"},
 ]
 
 

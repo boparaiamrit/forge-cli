@@ -65,18 +65,18 @@ UBUNTU_VERSIONS = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CVE_MENU_CHOICES = [
-    {"name": "🔍  Full CVE Scan", "value": "full_scan"},
-    {"name": "💻  Scan System Packages", "value": "scan_system"},
-    {"name": "📦  Scan Application Dependencies", "value": "scan_apps"},
+    {"name": "🔍 Full CVE Scan", "value": "full_scan"},
+    {"name": "💻 Scan System Packages", "value": "scan_system"},
+    {"name": "📦 Scan Application Dependencies", "value": "scan_apps"},
     questionary.Separator("─" * 30),
-    {"name": "📋  View Last Scan Results", "value": "view_results"},
-    {"name": "📊  Scan History", "value": "history"},
+    {"name": "📋 View Last Scan Results", "value": "view_results"},
+    {"name": "📊 Scan History", "value": "history"},
     questionary.Separator("─" * 30),
-    {"name": "🔄  Update CVE Database", "value": "update_db"},
-    {"name": "⏰  Setup CVE Update Cron", "value": "setup_cron"},
-    {"name": "ℹ️   Database Status", "value": "db_status"},
+    {"name": "🔄 Update CVE Database", "value": "update_db"},
+    {"name": "⏰ Setup CVE Update Cron", "value": "setup_cron"},
+    {"name": "ℹ️ Database Status", "value": "db_status"},
     questionary.Separator("─" * 30),
-    {"name": "⬅️   Back", "value": "back"},
+    {"name": "⬅️ Back", "value": "back"},
 ]
 
 

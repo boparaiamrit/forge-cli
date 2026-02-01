@@ -30,22 +30,22 @@ console = Console()
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SECURITY_MENU_CHOICES = [
-    {"name": "🛡️   ClamAV Status", "value": "status"},
-    {"name": "📥  Install ClamAV", "value": "install"},
+    {"name": "🛡️ ClamAV Status", "value": "status"},
+    {"name": "📥 Install ClamAV", "value": "install"},
     questionary.Separator("─" * 30),
-    {"name": "🔍  Quick Scan", "value": "quick_scan"},
-    {"name": "📂  Scan Directory", "value": "scan_dir"},
-    {"name": "🌐  Scan Web Files", "value": "scan_web"},
-    {"name": "🏠  Full System Scan", "value": "full_scan"},
+    {"name": "🔍 Quick Scan", "value": "quick_scan"},
+    {"name": "📂 Scan Directory", "value": "scan_dir"},
+    {"name": "🌐 Scan Web Files", "value": "scan_web"},
+    {"name": "🏠 Full System Scan", "value": "full_scan"},
     questionary.Separator("─" * 30),
-    {"name": "📋  View Scan Reports", "value": "reports"},
-    {"name": "🔔  File Change Detection", "value": "file_changes"},
-    {"name": "🚨  Malware Signatures", "value": "signatures"},
+    {"name": "📋 View Scan Reports", "value": "reports"},
+    {"name": "🔔 File Change Detection", "value": "file_changes"},
+    {"name": "🚨 Malware Signatures", "value": "signatures"},
     questionary.Separator("─" * 30),
-    {"name": "⏰  Schedule Scans", "value": "schedule"},
-    {"name": "🔄  Update Virus Database", "value": "update_db"},
+    {"name": "⏰ Schedule Scans", "value": "schedule"},
+    {"name": "🔄 Update Virus Database", "value": "update_db"},
     questionary.Separator("─" * 30),
-    {"name": "⬅️   Back", "value": "back"},
+    {"name": "⬅️ Back", "value": "back"},
 ]
 
 # Scan report storage
@@ -590,8 +590,8 @@ def view_scan_reports():
         "Action:",
         choices=[
             {"name": "📄 View Report Details", "value": "view"},
-            {"name": "🗑️  Clear Old Reports", "value": "clear"},
-            {"name": "⬅️  Back", "value": "back"},
+            {"name": "🗑️ Clear Old Reports", "value": "clear"},
+            {"name": "⬅️ Back", "value": "back"},
         ],
     ).ask()
 
@@ -653,10 +653,10 @@ def file_change_detection():
         "Action:",
         choices=[
             {"name": "📥 Install inotify-tools", "value": "install_inotify"},
-            {"name": "👁️  Monitor Directory (live)", "value": "monitor"},
+            {"name": "👁️ Monitor Directory (live)", "value": "monitor"},
             {"name": "📊 Generate File Baseline", "value": "baseline"},
             {"name": "🔍 Check Against Baseline", "value": "check"},
-            {"name": "⬅️  Back", "value": "back"},
+            {"name": "⬅️ Back", "value": "back"},
         ],
     ).ask()
 

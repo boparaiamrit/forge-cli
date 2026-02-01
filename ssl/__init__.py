@@ -20,12 +20,12 @@ console = Console()
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SSL_MENU_CHOICES = [
-    {"name": "🔐  Provision SSL Certificate", "value": "provision"},
-    {"name": "📋  List Certificates", "value": "list"},
-    {"name": "🔄  Renew Certificates", "value": "renew"},
-    {"name": "🗑️   Revoke Certificate", "value": "revoke"},
+    {"name": "🔐 Provision SSL Certificate", "value": "provision"},
+    {"name": "📋 List Certificates", "value": "list"},
+    {"name": "🔄 Renew Certificates", "value": "renew"},
+    {"name": "🗑️ Revoke Certificate", "value": "revoke"},
     questionary.Separator("─" * 30),
-    {"name": "⬅️   Back", "value": "back"},
+    {"name": "⬅️ Back", "value": "back"},
 ]
 
 
