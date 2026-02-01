@@ -15,18 +15,40 @@ console = Console()
 # INSTALLER MENU
 # ═══════════════════════════════════════════════════════════════════════════════
 
-PACKAGES = [
-    {"name": "🌐 Nginx", "value": "nginx", "installed": command_exists("nginx")},
-    {"name": "🐘 PHP 8.3", "value": "php83", "installed": False},
-    {"name": "🐘 PHP 8.2", "value": "php82", "installed": False},
-    {"name": "🟢 Node.js (via NVM)", "value": "node", "installed": command_exists("node")},
-    {"name": "⚡ PM2 Process Manager", "value": "pm2", "installed": command_exists("pm2")},
-    {"name": "🔴 Redis", "value": "redis", "installed": command_exists("redis-cli")},
-    {"name": "🔒 Certbot (Let's Encrypt)", "value": "certbot", "installed": command_exists("certbot")},
-    {"name": "📦 Composer", "value": "composer", "installed": command_exists("composer")},
-    {"name": "🗄️  MySQL 8", "value": "mysql", "installed": command_exists("mysql")},
-    {"name": "🐘 PostgreSQL", "value": "postgresql", "installed": command_exists("psql")},
-]
+def check_php_installed(version: str) -> bool:
+    """Check if a specific PHP version is installed."""
+    code, _, _ = run_command(f"dpkg -l php{version} 2>/dev/null | grep -q '^ii'", check=False)
+    return code == 0
+
+
+def get_packages():
+    """Build package list with current installation status."""
+    return [
+        {"name": "🌐 Nginx", "value": "nginx", "installed": command_exists("nginx")},
+        questionary.Separator("─" * 20 + " PHP Versions " + "─" * 20),
+        {"name": "🐘 PHP 8.5", "value": "php85", "installed": check_php_installed("8.5")},
+        {"name": "🐘 PHP 8.4", "value": "php84", "installed": check_php_installed("8.4")},
+        {"name": "🐘 PHP 8.3", "value": "php83", "installed": check_php_installed("8.3")},
+        {"name": "🐘 PHP 8.2", "value": "php82", "installed": check_php_installed("8.2")},
+        {"name": "🐘 PHP 8.1", "value": "php81", "installed": check_php_installed("8.1")},
+        {"name": "🐘 PHP 8.0", "value": "php80", "installed": check_php_installed("8.0")},
+        {"name": "🐘 PHP 7.4", "value": "php74", "installed": check_php_installed("7.4")},
+        questionary.Separator("─" * 20 + " Databases " + "─" * 20),
+        {"name": "🗄️  MySQL 8", "value": "mysql", "installed": command_exists("mysql")},
+        {"name": "🗄️  MariaDB", "value": "mariadb", "installed": command_exists("mariadb")},
+        {"name": "🐘 PostgreSQL", "value": "postgresql", "installed": command_exists("psql")},
+        {"name": "🔴 Redis", "value": "redis", "installed": command_exists("redis-cli")},
+        {"name": "💾 Memcached", "value": "memcached", "installed": command_exists("memcached")},
+        questionary.Separator("─" * 20 + " Node.js & Tools " + "─" * 20),
+        {"name": "🟢 Node.js (via NVM)", "value": "node", "installed": command_exists("node")},
+        {"name": "⚡ PM2 Process Manager", "value": "pm2", "installed": command_exists("pm2")},
+        {"name": "🔧 Supervisor", "value": "supervisor", "installed": command_exists("supervisorctl")},
+        questionary.Separator("─" * 20 + " Web Tools " + "─" * 20),
+        {"name": "🔒 Certbot (Let's Encrypt)", "value": "certbot", "installed": command_exists("certbot")},
+        {"name": "📦 Composer", "value": "composer", "installed": command_exists("composer")},
+        {"name": "🐳 Docker", "value": "docker", "installed": command_exists("docker")},
+        {"name": "🐳 Docker Compose", "value": "docker-compose", "installed": command_exists("docker-compose")},
+    ]
 
 
 def run_installer_menu():
@@ -35,15 +57,19 @@ def run_installer_menu():
     print_header()
     print_breadcrumb(["Main", "Install Packages"])
 
-    # Build choices with installed indicators
+    # Build choices with installed indicators (checked dynamically)
+    packages = get_packages()
     choices = []
-    for pkg in PACKAGES:
-        status = " [green]✓[/green]" if pkg["installed"] else ""
-        choices.append({
-            "name": f"{pkg['name']}{status}",
-            "value": pkg["value"],
-            "checked": False,
-        })
+    for pkg in packages:
+        if isinstance(pkg, questionary.Separator):
+            choices.append(pkg)
+        else:
+            status = " [green]✓[/green]" if pkg.get("installed") else ""
+            choices.append({
+                "name": f"{pkg['name']}{status}",
+                "value": pkg["value"],
+                "checked": False,
+            })
 
     selected = questionary.checkbox(
         "Select packages to install (Space to select, Enter to confirm):",
@@ -69,15 +95,25 @@ def install_package(package: str):
     """Install a specific package."""
     installers = {
         "nginx": install_nginx,
+        "php85": lambda: install_php("8.5"),
+        "php84": lambda: install_php("8.4"),
         "php83": lambda: install_php("8.3"),
         "php82": lambda: install_php("8.2"),
+        "php81": lambda: install_php("8.1"),
+        "php80": lambda: install_php("8.0"),
+        "php74": lambda: install_php("7.4"),
         "node": install_node,
         "pm2": install_pm2,
         "redis": install_redis,
+        "memcached": install_memcached,
         "certbot": install_certbot,
         "composer": install_composer,
         "mysql": install_mysql,
+        "mariadb": install_mariadb,
         "postgresql": install_postgresql,
+        "supervisor": install_supervisor,
+        "docker": install_docker,
+        "docker-compose": install_docker_compose,
     }
 
     if package in installers:
@@ -264,3 +300,119 @@ def install_postgresql():
             return
 
     print_success("PostgreSQL installed!")
+
+
+def install_mariadb():
+    """Install MariaDB server."""
+    console.print("[cyan]Installing MariaDB...[/cyan]")
+
+    commands = [
+        "sudo apt update",
+        "sudo apt install -y mariadb-server",
+        "sudo systemctl enable mariadb",
+        "sudo systemctl start mariadb",
+    ]
+
+    for cmd in commands:
+        code, _, stderr = run_command(cmd, check=False)
+        if code != 0:
+            print_error(f"Failed: {stderr}")
+            return
+
+    console.print("[yellow]Run 'sudo mysql_secure_installation' to secure MariaDB[/yellow]")
+    print_success("MariaDB installed!")
+
+
+def install_memcached():
+    """Install Memcached server."""
+    console.print("[cyan]Installing Memcached...[/cyan]")
+
+    commands = [
+        "sudo apt update",
+        "sudo apt install -y memcached libmemcached-tools",
+        "sudo systemctl enable memcached",
+        "sudo systemctl start memcached",
+    ]
+
+    for cmd in commands:
+        code, _, stderr = run_command(cmd, check=False)
+        if code != 0:
+            print_error(f"Failed: {stderr}")
+            return
+
+    print_success("Memcached installed!")
+
+
+def install_supervisor():
+    """Install Supervisor process manager."""
+    console.print("[cyan]Installing Supervisor...[/cyan]")
+
+    commands = [
+        "sudo apt update",
+        "sudo apt install -y supervisor",
+        "sudo systemctl enable supervisor",
+        "sudo systemctl start supervisor",
+    ]
+
+    for cmd in commands:
+        code, _, stderr = run_command(cmd, check=False)
+        if code != 0:
+            print_error(f"Failed: {stderr}")
+            return
+
+    print_success("Supervisor installed!")
+
+
+def install_docker():
+    """Install Docker."""
+    console.print("[cyan]Installing Docker...[/cyan]")
+
+    commands = [
+        "sudo apt update",
+        "sudo apt install -y ca-certificates curl gnupg",
+        "sudo install -m 0755 -d /etc/apt/keyrings",
+        "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg",
+        "sudo chmod a+r /etc/apt/keyrings/docker.gpg",
+        'echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null',
+        "sudo apt update",
+        "sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin",
+        "sudo systemctl enable docker",
+        "sudo systemctl start docker",
+    ]
+
+    for cmd in commands:
+        code, _, stderr = run_command(cmd, check=False)
+        if code != 0:
+            print_error(f"Failed: {stderr}")
+            return
+
+    # Add current user to docker group
+    run_command("sudo usermod -aG docker $USER", check=False)
+
+    console.print("[yellow]Log out and back in for docker group to take effect[/yellow]")
+    print_success("Docker installed!")
+
+
+def install_docker_compose():
+    """Install Docker Compose (standalone)."""
+    console.print("[cyan]Installing Docker Compose...[/cyan]")
+
+    # Check if docker compose plugin is already installed
+    code, _, _ = run_command("docker compose version", check=False)
+    if code == 0:
+        print_success("Docker Compose (plugin) is already available via 'docker compose'")
+        return
+
+    # Install standalone docker-compose
+    commands = [
+        'sudo curl -SL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$(uname -m)" -o /usr/local/bin/docker-compose',
+        "sudo chmod +x /usr/local/bin/docker-compose",
+    ]
+
+    for cmd in commands:
+        code, _, stderr = run_command(cmd, check=False)
+        if code != 0:
+            print_error(f"Failed: {stderr}")
+            return
+
+    print_success("Docker Compose installed!")
