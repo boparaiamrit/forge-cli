@@ -33,29 +33,48 @@ def get_latest_version() -> tuple:
     """
     Fetch the latest version from GitHub.
     Returns (version, changelog_url, error)
+
+    Uses Python's urllib rather than curl so it works regardless of shell.
     """
-    # Try to fetch pyproject.toml from GitHub
-    code, stdout, _ = run_command(
-        f"curl -s {GITHUB_RAW_URL}/pyproject.toml 2>/dev/null | grep '^version' | head -1",
-        check=False
-    )
+    import json
+    from urllib.request import urlopen, Request
+    from urllib.error import URLError
 
-    if code == 0 and stdout:
-        # Parse version = "x.x.x"
-        match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', stdout)
+    changelog_url = f"https://github.com/{GITHUB_REPO}/blob/main/CHANGELOG.md"
+
+    # ── Attempt 1: Read pyproject.toml from raw GitHub ────────────────────────
+    try:
+        req = Request(
+            f"{GITHUB_RAW_URL}/pyproject.toml",
+            headers={"User-Agent": "forge-cli-updater"},
+        )
+        with urlopen(req, timeout=5) as resp:
+            content = resp.read().decode("utf-8", errors="replace")
+
+        match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
         if match:
-            return (match.group(1), f"https://github.com/{GITHUB_REPO}/blob/main/CHANGELOG.md", None)
+            return (match.group(1), changelog_url, None)
+    except (URLError, OSError, TimeoutError):
+        pass
 
-    # Fallback: try GitHub API for latest release
-    code, stdout, _ = run_command(
-        f"curl -s https://api.github.com/repos/{GITHUB_REPO}/releases/latest 2>/dev/null | grep '\"tag_name\"' | head -1",
-        check=False
-    )
+    # ── Attempt 2: GitHub releases API ────────────────────────────────────────
+    try:
+        req = Request(
+            f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest",
+            headers={
+                "User-Agent": "forge-cli-updater",
+                "Accept": "application/vnd.github+json",
+            },
+        )
+        with urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
 
-    if code == 0 and stdout:
-        match = re.search(r'"tag_name":\s*"v?([^"]+)"', stdout)
-        if match:
-            return (match.group(1), f"https://github.com/{GITHUB_REPO}/releases", None)
+        tag = data.get("tag_name", "")
+        if tag:
+            version = tag.lstrip("v")
+            return (version, f"https://github.com/{GITHUB_REPO}/releases", None)
+    except (URLError, OSError, TimeoutError, json.JSONDecodeError, KeyError):
+        pass
 
     return (None, None, "Could not fetch latest version from GitHub")
 
