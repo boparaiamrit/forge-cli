@@ -5,6 +5,21 @@ All notable changes to Forge CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-02-20
+
+### Added
+- **Edit Site** — New ✏️ Edit Site option in the Manage Sites menu
+  - Select any existing site and modify its configuration interactively
+  - Change primary port, manage proxy paths (add/remove), manage WebSocket paths (add/remove)
+  - Toggle, configure, or change scope of HTTP Basic Auth
+  - Preview the regenerated Nginx config before applying
+  - Automatic rollback to previous config if `nginx -t` fails
+  - Full state persistence — changes are saved for future edits
+- **Basic Auth Scope** — When enabling Basic Auth with proxy/WS paths:
+  - `Frontend only` — protects the frontend while API and WebSocket routes bypass auth
+  - `Whole site` — blanket password protection for everything
+  - Scope is selectable during both Create and Edit flows
+
 ## [0.11.0] - 2026-02-20
 
 ### Added

@@ -33,6 +33,7 @@ SITES_ENABLED = "/etc/nginx/sites-enabled"
 SITES_MENU_CHOICES = [
     {"name": "📋 List Sites", "value": "list"},
     {"name": "➕ Create Site", "value": "create"},
+    {"name": "✏️  Edit Site", "value": "edit"},
     {"name": "🔒 Provision SSL", "value": "ssl"},
     {"name": "📜 View Site Logs", "value": "logs"},
     {"name": "👁️ View Configuration", "value": "view_config"},
@@ -66,6 +67,8 @@ def run_sites_menu():
             list_sites()
         elif choice == "create":
             create_site()
+        elif choice == "edit":
+            edit_site()
         elif choice == "ssl":
             provision_ssl_for_site()
         elif choice == "logs":
@@ -591,6 +594,477 @@ def create_site():
     if questionary.confirm("Would you like to set up SSL now?", default=True).ask():
         provision_ssl_for_domain(domain, include_www)
 
+    questionary.press_any_key_to_continue().ask()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# EDIT SITE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _print_site_summary(domain: str, site_state: dict) -> None:
+    """Print a structured summary of a site's current configuration."""
+    lines = [f"[bold]Domain:[/bold]    {domain}"]
+    lines.append(f"[bold]Type:[/bold]      {site_state.get('type', 'unknown')}")
+    lines.append(f"[bold]SSL:[/bold]       {'🔒 Enabled' if site_state.get('ssl_enabled') else '🔓 Disabled'}")
+
+    if site_state.get("port"):
+        lines.append(f"[bold]Port:[/bold]      {site_state['port']}")
+    if site_state.get("document_root"):
+        lines.append(f"[bold]Doc Root:[/bold]  {site_state['document_root']}")
+    if site_state.get("php_version"):
+        lines.append(f"[bold]PHP:[/bold]       {site_state['php_version']}")
+
+    # Proxy paths
+    proxy_paths = site_state.get("proxy_paths", [])
+    if proxy_paths:
+        lines.append("")
+        lines.append("[bold cyan]Proxy Paths:[/bold cyan]")
+        for i, pp in enumerate(proxy_paths, 1):
+            desc = f" ({pp.get('description')})" if pp.get("description") else ""
+            lines.append(f"  {i}. {pp['path']} → :{pp['port']}{desc}")
+
+    # WebSocket paths
+    ws_paths = site_state.get("ws_paths", [])
+    if ws_paths:
+        lines.append("")
+        lines.append("[bold cyan]WebSocket Paths:[/bold cyan]")
+        for i, ws in enumerate(ws_paths, 1):
+            desc = f" ({ws.get('description')})" if ws.get("description") else ""
+            lines.append(f"  {i}. {ws['path']} → :{ws['port']}{ws.get('upstream_path', '')}{desc}")
+
+    # Basic Auth
+    if site_state.get("basic_auth"):
+        lines.append("")
+        scope = site_state.get("basic_auth_scope", "whole_site")
+        scope_label = "Frontend only" if scope == "frontend_only" else "Whole site"
+        lines.append(f"[bold cyan]Basic Auth:[/bold cyan] {site_state.get('basic_auth_user', '?')} ({scope_label})")
+
+    console.print(Panel(
+        "\n".join(lines),
+        title=f"📋 {domain}",
+        border_style="cyan",
+    ))
+
+
+def _edit_port(site_state: dict) -> dict:
+    """Edit the primary application port."""
+    current = site_state.get("port", 3000)
+    new_port = questionary.text(
+        f"Primary port (current: {current}):",
+        default=str(current),
+        validate=lambda x: x.isdigit() and 1000 <= int(x) <= 65535,
+    ).ask()
+
+    if new_port:
+        site_state["port"] = int(new_port)
+        print_success(f"Port updated to {new_port}")
+    return site_state
+
+
+def _edit_proxy_paths(site_state: dict) -> dict:
+    """Edit proxy paths interactively."""
+    proxy_paths = list(site_state.get("proxy_paths", []))
+
+    while True:
+        choices = []
+        if proxy_paths:
+            choices.append({"name": "📋 List current proxy paths", "value": "list"})
+            choices.append({"name": "🗑️  Remove a proxy path", "value": "remove"})
+        choices.append({"name": "➕ Add a proxy path", "value": "add"})
+        choices.append(questionary.Separator("─" * 30))
+        choices.append({"name": "⬅️  Done", "value": "done"})
+
+        action = questionary.select(
+            f"Proxy Paths ({len(proxy_paths)} configured):",
+            choices=choices,
+        ).ask()
+
+        if action is None or action == "done":
+            break
+
+        if action == "list":
+            for i, pp in enumerate(proxy_paths, 1):
+                desc = f" ({pp.get('description')})" if pp.get("description") else ""
+                console.print(f"  [cyan]{i}.[/cyan] {pp['path']} → :{pp['port']}{desc}")
+            console.print()
+
+        elif action == "add":
+            path = questionary.text(
+                "  URL path (must end with /):",
+                default="/api/",
+                validate=lambda x: len(x) > 1 and x.endswith("/"),
+            ).ask()
+            port = questionary.text(
+                "  Upstream port:",
+                default="8000",
+                validate=lambda x: x.isdigit() and 1000 <= int(x) <= 65535,
+            ).ask()
+            desc = questionary.text("  Description (optional):", default="").ask()
+
+            proxy_paths.append({
+                "path": path,
+                "port": int(port),
+                "description": desc or None,
+            })
+            print_success(f"  Added: {path} → :{port}")
+
+        elif action == "remove":
+            remove_choices = [
+                {"name": f"{pp['path']} → :{pp['port']}", "value": i}
+                for i, pp in enumerate(proxy_paths)
+            ]
+            remove_choices.append({"name": "⬅️ Cancel", "value": None})
+            idx = questionary.select("Remove which path?", choices=remove_choices).ask()
+            if idx is not None:
+                removed = proxy_paths.pop(idx)
+                print_success(f"  Removed: {removed['path']}")
+
+    site_state["proxy_paths"] = proxy_paths
+    return site_state
+
+
+def _edit_ws_paths(site_state: dict) -> dict:
+    """Edit WebSocket paths interactively."""
+    ws_paths = list(site_state.get("ws_paths", []))
+
+    while True:
+        choices = []
+        if ws_paths:
+            choices.append({"name": "📋 List current WS paths", "value": "list"})
+            choices.append({"name": "🗑️  Remove a WS path", "value": "remove"})
+        choices.append({"name": "➕ Add a WebSocket path", "value": "add"})
+        choices.append(questionary.Separator("─" * 30))
+        choices.append({"name": "⬅️  Done", "value": "done"})
+
+        action = questionary.select(
+            f"WebSocket Paths ({len(ws_paths)} configured):",
+            choices=choices,
+        ).ask()
+
+        if action is None or action == "done":
+            break
+
+        if action == "list":
+            for i, ws in enumerate(ws_paths, 1):
+                desc = f" ({ws.get('description')})" if ws.get("description") else ""
+                console.print(f"  [cyan]{i}.[/cyan] {ws['path']} → :{ws['port']}{ws.get('upstream_path', '')}{desc}")
+            console.print()
+
+        elif action == "add":
+            path = questionary.text(
+                "  Public WS path:",
+                default="/ws",
+                validate=lambda x: len(x) > 0 and x.startswith("/"),
+            ).ask()
+            port = questionary.text(
+                "  Upstream port:",
+                default="8000",
+                validate=lambda x: x.isdigit() and 1000 <= int(x) <= 65535,
+            ).ask()
+            upstream_path = questionary.text(
+                "  Upstream path:",
+                default=path,
+                validate=lambda x: len(x) > 0 and x.startswith("/"),
+            ).ask()
+            desc = questionary.text("  Description (optional):", default="").ask()
+
+            ws_paths.append({
+                "path": path,
+                "port": int(port),
+                "upstream_path": upstream_path,
+                "description": desc or None,
+            })
+            print_success(f"  Added WS: {path} → :{port}{upstream_path}")
+
+        elif action == "remove":
+            remove_choices = [
+                {"name": f"{ws['path']} → :{ws['port']}{ws.get('upstream_path', '')}", "value": i}
+                for i, ws in enumerate(ws_paths)
+            ]
+            remove_choices.append({"name": "⬅️ Cancel", "value": None})
+            idx = questionary.select("Remove which WS path?", choices=remove_choices).ask()
+            if idx is not None:
+                removed = ws_paths.pop(idx)
+                print_success(f"  Removed WS: {removed['path']}")
+
+    site_state["ws_paths"] = ws_paths
+    return site_state
+
+
+def _edit_basic_auth(domain: str, site_state: dict) -> dict:
+    """Edit basic auth settings."""
+    is_enabled = site_state.get("basic_auth", False)
+    has_proxy = bool(site_state.get("proxy_paths"))
+    has_ws = bool(site_state.get("ws_paths"))
+
+    if is_enabled:
+        # Auth is currently ON — offer toggle/change
+        action = questionary.select(
+            f"Basic Auth is ON (user: {site_state.get('basic_auth_user', '?')})",
+            choices=[
+                {"name": "🔓 Disable Basic Auth", "value": "disable"},
+                {"name": "👤 Change credentials", "value": "credentials"},
+                {"name": "🎯 Change scope", "value": "scope"},
+                questionary.Separator("─" * 30),
+                {"name": "⬅️  Done", "value": "done"},
+            ],
+        ).ask()
+
+        if action == "disable":
+            site_state["basic_auth"] = False
+            site_state.pop("basic_auth_user", None)
+            site_state.pop("basic_auth_scope", None)
+            print_success("Basic Auth disabled")
+
+        elif action == "credentials":
+            username = questionary.text(
+                "  New username:",
+                default=site_state.get("basic_auth_user", ""),
+                validate=lambda x: len(x) >= 2,
+            ).ask()
+            password = questionary.password(
+                "  New password:",
+                validate=lambda x: len(x) >= 6,
+            ).ask()
+
+            if _provision_htpasswd(domain, username, password):
+                site_state["basic_auth_user"] = username
+                print_success(f"Credentials updated for {username}")
+            else:
+                print_error("Failed to update credentials")
+
+        elif action == "scope":
+            if has_proxy or has_ws:
+                new_scope = questionary.select(
+                    "  Where should Basic Auth apply?",
+                    choices=[
+                        {
+                            "name": "🌐 Frontend only (exclude API & WebSocket) — recommended",
+                            "value": "frontend_only",
+                        },
+                        {
+                            "name": "🔒 Entire site (protect everything)",
+                            "value": "whole_site",
+                        },
+                    ],
+                ).ask()
+                site_state["basic_auth_scope"] = new_scope
+                print_success(f"Scope changed to {new_scope}")
+            else:
+                print_info("No proxy/WS paths configured — scope only matters when there are API or WebSocket routes.")
+
+    else:
+        # Auth is currently OFF — offer to enable
+        enable = questionary.confirm("Enable HTTP Basic Auth?", default=False).ask()
+        if enable:
+            auth_config = _collect_basic_auth(domain, has_proxy_paths=has_proxy, has_ws_paths=has_ws)
+            if auth_config["enabled"]:
+                if _provision_htpasswd(domain, auth_config["username"], auth_config["password"]):
+                    site_state["basic_auth"] = True
+                    site_state["basic_auth_user"] = auth_config["username"]
+                    site_state["basic_auth_scope"] = auth_config.get("scope", "whole_site")
+                    print_success(f"Basic Auth enabled for {auth_config['username']}")
+                else:
+                    print_error("Failed to provision htpasswd")
+
+    return site_state
+
+
+def edit_site():
+    """Edit an existing site's configuration interactively."""
+    clear_screen()
+    print_header()
+    print_breadcrumb(["Main", "Manage Sites", "Edit"])
+
+    # ── 1. Get list of sites ─────────────────────────────────────────────────
+    code, stdout, _ = run_command(f"ls {SITES_AVAILABLE}", check=False)
+    sites = [s for s in stdout.split() if s != "default"] if code == 0 else []
+
+    if not sites:
+        print_warning("No sites found.")
+        questionary.press_any_key_to_continue().ask()
+        return
+
+    site = questionary.select(
+        "Select site to edit:",
+        choices=sites + [questionary.Separator(), {"name": "⬅️ Cancel", "value": None}],
+    ).ask()
+
+    if not site:
+        return
+
+    # ── 2. Load state ────────────────────────────────────────────────────────
+    site_state = get_site_state(site)
+    if not site_state:
+        print_warning(
+            f"No saved state for {site}. This site was created before state tracking "
+            "or externally. Only sites created via Forge CLI can be edited."
+        )
+        questionary.press_any_key_to_continue().ask()
+        return
+
+    # Work on a copy so we can discard
+    import copy
+    working_state = copy.deepcopy(site_state)
+
+    # ── 3. Edit loop ─────────────────────────────────────────────────────────
+    site_type = working_state.get("type", "nextjs")
+    is_proxy_site = site_type in ("nextjs", "nuxt")
+
+    while True:
+        clear_screen()
+        print_header()
+        print_breadcrumb(["Main", "Manage Sites", "Edit", site])
+
+        _print_site_summary(site, working_state)
+        console.print()
+
+        # Build edit choices based on site type
+        edit_choices = []
+
+        if is_proxy_site:
+            edit_choices.append({"name": "🔌 Change primary port", "value": "port"})
+
+        edit_choices.append({"name": "🔀 Manage proxy paths", "value": "proxy"})
+        edit_choices.append({"name": "📡 Manage WebSocket paths", "value": "ws"})
+        edit_choices.append({"name": "🔐 Basic Auth settings", "value": "auth"})
+        edit_choices.append(questionary.Separator("─" * 30))
+        edit_choices.append({"name": "💾 Save & Apply", "value": "save"})
+        edit_choices.append({"name": "❌ Discard & Go Back", "value": "discard"})
+
+        action = questionary.select(
+            "What to edit?",
+            choices=edit_choices,
+            pointer="▶",
+        ).ask()
+
+        if action is None or action == "discard":
+            return
+
+        if action == "port":
+            working_state = _edit_port(working_state)
+
+        elif action == "proxy":
+            working_state = _edit_proxy_paths(working_state)
+
+        elif action == "ws":
+            working_state = _edit_ws_paths(working_state)
+
+        elif action == "auth":
+            working_state = _edit_basic_auth(site, working_state)
+
+        elif action == "save":
+            break
+
+    # ── 4. Regenerate config ─────────────────────────────────────────────────
+    console.print("\n[bold]Regenerating Nginx configuration...[/bold]")
+
+    render_config = {
+        "domain": site,
+        "www": working_state.get("www", False),
+        "port": working_state.get("port", 3000),
+        "ssl_enabled": working_state.get("ssl_enabled", False),
+        "max_body_size": working_state.get("max_body_size", "100M"),
+    }
+
+    if working_state.get("document_root"):
+        render_config["document_root"] = working_state["document_root"]
+    if working_state.get("php_version"):
+        render_config["php_version"] = working_state["php_version"]
+    if working_state.get("proxy_paths"):
+        render_config["proxy_paths"] = working_state["proxy_paths"]
+    if working_state.get("ws_paths"):
+        render_config["ws_paths"] = working_state["ws_paths"]
+    if working_state.get("basic_auth"):
+        render_config["basic_auth"] = True
+        render_config["basic_auth_realm"] = working_state.get("basic_auth_realm", "Restricted Access")
+        render_config["basic_auth_scope"] = working_state.get("basic_auth_scope", "whole_site")
+
+    rendered = render_template(site_type=site_type, **render_config)
+
+    # Preview
+    console.print(Panel(rendered, title=f"New config: {site}", border_style="dim"))
+
+    if not confirm_action("Apply this configuration?"):
+        print_info("Changes discarded.")
+        questionary.press_any_key_to_continue().ask()
+        return
+
+    # ── 5. Write config ──────────────────────────────────────────────────────
+    temp_path = f"/tmp/{site}.conf"
+    with open(temp_path, "w") as f:
+        f.write(rendered)
+
+    config_path = f"{SITES_AVAILABLE}/{site}"
+    run_command(f"sudo mv {temp_path} {config_path}", check=False)
+
+    # ── 6. Handle htpasswd changes ───────────────────────────────────────────
+    old_had_auth = site_state.get("basic_auth", False)
+    new_has_auth = working_state.get("basic_auth", False)
+
+    if not new_has_auth and old_had_auth:
+        # Auth was disabled — remove htpasswd file
+        run_command(f"sudo rm -f /etc/nginx/.htpasswd-{site}", check=False)
+        print_info("Removed htpasswd file")
+
+    # ── 7. Test and reload nginx ─────────────────────────────────────────────
+    code, _, stderr = run_command("sudo nginx -t", check=False)
+    if code != 0:
+        print_error(f"Nginx config test failed: {stderr}")
+        print_warning("Rolling back to previous configuration...")
+        # Restore from backup — re-render with original state
+        original_config = {
+            "domain": site,
+            "www": site_state.get("www", False),
+            "port": site_state.get("port", 3000),
+            "ssl_enabled": site_state.get("ssl_enabled", False),
+        }
+        if site_state.get("proxy_paths"):
+            original_config["proxy_paths"] = site_state["proxy_paths"]
+        if site_state.get("ws_paths"):
+            original_config["ws_paths"] = site_state["ws_paths"]
+        if site_state.get("basic_auth"):
+            original_config["basic_auth"] = True
+            original_config["basic_auth_scope"] = site_state.get("basic_auth_scope", "whole_site")
+
+        rollback = render_template(site_type=site_type, **original_config)
+        with open(temp_path, "w") as f:
+            f.write(rollback)
+        run_command(f"sudo mv {temp_path} {config_path}", check=False)
+        run_command("sudo nginx -t", check=False)
+        print_error("Edit aborted — previous configuration restored.")
+        questionary.press_any_key_to_continue().ask()
+        return
+
+    run_command("sudo systemctl reload nginx", check=False)
+
+    # ── 8. Save state ────────────────────────────────────────────────────────
+    extra_state = {}
+    if working_state.get("proxy_paths"):
+        extra_state["proxy_paths"] = working_state["proxy_paths"]
+    if working_state.get("ws_paths"):
+        extra_state["ws_paths"] = working_state["ws_paths"]
+    if working_state.get("basic_auth"):
+        extra_state["basic_auth"] = True
+        extra_state["basic_auth_user"] = working_state.get("basic_auth_user", "")
+        extra_state["basic_auth_scope"] = working_state.get("basic_auth_scope", "whole_site")
+    if working_state.get("www") is not None:
+        extra_state["www"] = working_state["www"]
+
+    save_site_state(
+        domain=site,
+        site_type=site_type,
+        ssl_enabled=working_state.get("ssl_enabled", False),
+        port=working_state.get("port"),
+        document_root=working_state.get("document_root"),
+        php_version=working_state.get("php_version"),
+        enabled=working_state.get("enabled", True),
+        extra=extra_state if extra_state else None,
+    )
+
+    print_success(f"Site {site} updated and reloaded!")
+    _print_site_summary(site, working_state)
     questionary.press_any_key_to_continue().ask()
 
 

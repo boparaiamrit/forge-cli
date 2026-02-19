@@ -17,7 +17,7 @@ from utils.shell import run_command
 console = Console()
 
 # Current version - should match pyproject.toml
-CURRENT_VERSION = "0.11.0"
+CURRENT_VERSION = "0.12.0"
 
 # GitHub repository
 GITHUB_REPO = "boparaiamrit/forge-cli"

@@ -603,7 +603,7 @@ class TestVersion:
         match = re.search(r'^version\s*=\s*"(.+?)"', content, re.MULTILINE)
 
         assert match is not None, "version not found in pyproject.toml"
-        assert match.group(1) == "0.11.0"
+        assert match.group(1) == "0.12.0"
 
     def test_updater_version_matches_pyproject(self):
         """updater/__init__.py should declare the same version as pyproject.toml."""
@@ -615,4 +615,4 @@ class TestVersion:
         match = re.search(r'^CURRENT_VERSION\s*=\s*"(.+?)"', content, re.MULTILINE)
 
         assert match is not None, "CURRENT_VERSION not found in updater/__init__.py"
-        assert match.group(1) == "0.11.0"
+        assert match.group(1) == "0.12.0"
