@@ -1,5 +1,11 @@
 """
 Nginx Templates - Hardened, Production-Ready Configurations
+
+Supports:
+- WebSocket proxy locations
+- Multiple upstream proxy paths (e.g., /api/ → port 8000)
+- Optional HTTP Basic Auth
+- Gzip, security headers, SSL hardening
 """
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -41,6 +47,66 @@ RATE_LIMIT_ZONE = """
 # limit_req_zone $binary_remote_addr zone=login:10m rate=1r/s;
 """
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Reusable Jinja2 blocks injected into every Node.js/proxy template
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Extra proxy location blocks (REST API upstreams)
+PROXY_PATHS_BLOCK = """
+{% if proxy_paths %}
+{% for pp in proxy_paths %}
+    # ── Proxy: {{ pp.path }} → :{{ pp.port }} {{ '(' + pp.description + ')' if pp.description else '' }}
+    location {{ pp.path }} {
+        proxy_pass         http://127.0.0.1:{{ pp.port }}/;
+        proxy_http_version 1.1;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+
+        # Timeouts
+        proxy_read_timeout  300s;
+        proxy_send_timeout  300s;
+    }
+
+{% endfor %}
+{% endif %}
+"""
+
+# WebSocket location blocks
+WS_PATHS_BLOCK = """
+{% if ws_paths %}
+{% for ws in ws_paths %}
+    # ── WebSocket: {{ ws.path }} → :{{ ws.port }}{{ ws.upstream_path }} {{ '(' + ws.description + ')' if ws.description else '' }}
+    location {{ ws.path }} {
+        proxy_pass         http://127.0.0.1:{{ ws.port }}{{ ws.upstream_path }};
+        proxy_http_version 1.1;
+        proxy_set_header   Upgrade    $http_upgrade;
+        proxy_set_header   Connection "upgrade";
+        proxy_set_header   Host       $host;
+        proxy_set_header   X-Real-IP  $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+
+        # WebSocket keepalive
+        proxy_read_timeout  86400s;
+        proxy_send_timeout  86400s;
+    }
+
+{% endfor %}
+{% endif %}
+"""
+
+# Basic auth snippet (applied globally to the server block)
+BASIC_AUTH_BLOCK = """
+{% if basic_auth %}
+    # HTTP Basic Authentication
+    auth_basic           "{{ basic_auth_realm | default('Restricted Access') }}";
+    auth_basic_user_file /etc/nginx/.htpasswd-{{ domain }};
+{% endif %}
+"""
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # NEXT.JS / NUXT.JS TEMPLATE (Hardened)
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -75,6 +141,7 @@ server {
     proxy_read_timeout {{ proxy_read_timeout | default('300s') }};
 {{ security_headers }}
 {{ gzip_config }}
+{{ basic_auth_block }}
     # Logging
     access_log /var/log/nginx/{{ domain }}.access.log;
     error_log /var/log/nginx/{{ domain }}.error.log;
@@ -103,7 +170,8 @@ server {
 
         proxy_cache_bypass $http_upgrade;
     }
-
+{{ extra_proxy_blocks }}
+{{ ws_blocks }}
     # Static assets with caching
     location ~* \\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
         proxy_pass http://127.0.0.1:{{ port }};
@@ -157,6 +225,7 @@ server {
     fastcgi_read_timeout {{ fastcgi_read_timeout | default('300s') }};
 {{ security_headers }}
 {{ gzip_config }}
+{{ basic_auth_block }}
     # Logging
     access_log /var/log/nginx/{{ domain }}.access.log;
     error_log /var/log/nginx/{{ domain }}.error.log;
@@ -232,6 +301,7 @@ server {
     client_header_timeout {{ header_timeout | default('30s') }};
 {{ security_headers }}
 {{ gzip_config }}
+{{ basic_auth_block }}
     # Logging
     access_log /var/log/nginx/{{ domain }}.access.log;
     error_log /var/log/nginx/{{ domain }}.error.log;
@@ -304,6 +374,7 @@ server {
     proxy_read_timeout {{ proxy_read_timeout | default('300s') }};
 {{ security_headers }}
 {{ gzip_config }}
+{{ basic_auth_block }}
     # Logging
     access_log /var/log/nginx/{{ domain }}.access.log;
     error_log /var/log/nginx/{{ domain }}.error.log;
@@ -332,7 +403,8 @@ server {
 
         proxy_cache_bypass $http_upgrade;
     }
-
+{{ extra_proxy_blocks }}
+{{ ws_blocks }}
     # Static assets with caching
     location ~* \\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
         proxy_pass http://127.0.0.1:{{ port }};
@@ -386,6 +458,7 @@ server {
     fastcgi_read_timeout {{ fastcgi_read_timeout | default('300s') }};
 {{ security_headers }}
 {{ gzip_config }}
+{{ basic_auth_block }}
     # Logging
     access_log /var/log/nginx/{{ domain }}.access.log;
     error_log /var/log/nginx/{{ domain }}.error.log;
@@ -432,7 +505,13 @@ server {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 from datetime import datetime
+from typing import Optional
 from jinja2 import Template
+
+
+def _render_snippet(template_str: str, context: dict) -> str:
+    """Render a Jinja2 snippet with the given context."""
+    return Template(template_str).render(**context)
 
 
 def render_template(
@@ -440,13 +519,35 @@ def render_template(
     domain: str,
     www: bool = True,
     port: int = 3000,
-    document_root: str = None,
+    document_root: Optional[str] = None,
     php_version: str = "8.3",
     ssl_enabled: bool = False,
     max_body_size: str = "100M",
+    proxy_paths: Optional[list] = None,
+    ws_paths: Optional[list] = None,
+    basic_auth: bool = False,
+    basic_auth_realm: str = "Restricted Access",
     **kwargs
 ) -> str:
-    """Render an Nginx configuration template."""
+    """
+    Render an Nginx configuration template.
+
+    Args:
+        site_type:        One of 'nextjs', 'nuxt', 'php', 'static'.
+        domain:           Primary domain (e.g., trading.example.com).
+        www:              Include www. alias?
+        port:             Primary upstream port.
+        document_root:    Document root for PHP / static sites.
+        php_version:      PHP-FPM version string.
+        ssl_enabled:      Whether to use the SSL template variant.
+        max_body_size:    client_max_body_size value.
+        proxy_paths:      List of dicts with 'path', 'port', and optional 'description'.
+                          Example: [{"path": "/api/", "port": 8000, "description": "REST API"}]
+        ws_paths:         List of dicts with 'path', 'port', 'upstream_path', and optional 'description'.
+                          Example: [{"path": "/ws", "port": 8000, "upstream_path": "/ws", "description": "WebSocket"}]
+        basic_auth:       Enable HTTP Basic Authentication.
+        basic_auth_realm: Auth realm message shown to the user.
+    """
 
     # Select template based on type and SSL
     templates = {
@@ -462,6 +563,19 @@ def render_template(
 
     template_str = templates.get((site_type, ssl_enabled), NODEJS_TEMPLATE)
 
+    # Pre-render sub-blocks so Jinja2 context stays flat
+    sub_context = {
+        "domain": domain,
+        "proxy_paths": proxy_paths or [],
+        "ws_paths": ws_paths or [],
+        "basic_auth": basic_auth,
+        "basic_auth_realm": basic_auth_realm,
+    }
+
+    extra_proxy_rendered = _render_snippet(PROXY_PATHS_BLOCK, sub_context)
+    ws_rendered = _render_snippet(WS_PATHS_BLOCK, sub_context)
+    auth_rendered = _render_snippet(BASIC_AUTH_BLOCK, sub_context)
+
     # Build context
     context = {
         "domain": domain,
@@ -474,6 +588,9 @@ def render_template(
         "security_headers": SECURITY_HEADERS,
         "gzip_config": GZIP_CONFIG,
         "ssl_config": SSL_CONFIG if ssl_enabled else "",
+        "extra_proxy_blocks": extra_proxy_rendered,
+        "ws_blocks": ws_rendered,
+        "basic_auth_block": auth_rendered,
         **kwargs
     }
 
