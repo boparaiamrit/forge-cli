@@ -405,6 +405,75 @@ class TestCombinedConfig:
         assert "── Proxy:" not in result
         assert "── WebSocket:" not in result
 
+    def test_frontend_only_scope_excludes_api_and_ws(self):
+        """When scope is frontend_only, proxy/WS blocks should have auth_basic off."""
+        result = render_template(
+            site_type="nextjs",
+            domain="trading.example.com",
+            www=False,
+            port=3000,
+            basic_auth=True,
+            basic_auth_scope="frontend_only",
+            proxy_paths=[
+                {"path": "/api/", "port": 8000, "description": "REST API"},
+            ],
+            ws_paths=[
+                {"path": "/ws", "port": 8000, "upstream_path": "/ws", "description": "WS"},
+            ],
+        )
+
+        # Server-level auth should be present
+        assert "auth_basic" in result
+        assert "auth_basic_user_file" in result
+
+        # Proxy and WS blocks should exempt from auth
+        assert "auth_basic off;" in result
+
+        # Scope comment should appear
+        assert "scope: frontend_only" in result
+
+    def test_whole_site_scope_protects_everything(self):
+        """When scope is whole_site, proxy/WS blocks should NOT have auth_basic off."""
+        result = render_template(
+            site_type="nextjs",
+            domain="trading.example.com",
+            www=False,
+            port=3000,
+            basic_auth=True,
+            basic_auth_scope="whole_site",
+            proxy_paths=[
+                {"path": "/api/", "port": 8000, "description": "REST API"},
+            ],
+            ws_paths=[
+                {"path": "/ws", "port": 8000, "upstream_path": "/ws", "description": "WS"},
+            ],
+        )
+
+        # Server-level auth should be present
+        assert 'auth_basic' in result
+        assert "auth_basic_user_file" in result
+
+        # Should NOT have auth_basic off anywhere
+        assert "auth_basic off;" not in result
+
+        # Scope comment should show whole_site
+        assert "scope: whole_site" in result
+
+    def test_default_scope_is_whole_site(self):
+        """When basic_auth_scope is not specified, default should be whole_site."""
+        result = render_template(
+            site_type="nextjs",
+            domain="test.example.com",
+            port=3000,
+            basic_auth=True,
+            proxy_paths=[
+                {"path": "/api/", "port": 8000, "description": None},
+            ],
+        )
+
+        # Default scope = whole_site, so no auth_basic off
+        assert "auth_basic off;" not in result
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # BACKWARD COMPATIBILITY
@@ -513,6 +582,7 @@ class TestHelperImports:
         assert "ws_paths" in param_names
         assert "basic_auth" in param_names
         assert "basic_auth_realm" in param_names
+        assert "basic_auth_scope" in param_names
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

@@ -57,6 +57,9 @@ PROXY_PATHS_BLOCK = """
 {% for pp in proxy_paths %}
     # ── Proxy: {{ pp.path }} → :{{ pp.port }} {{ '(' + pp.description + ')' if pp.description else '' }}
     location {{ pp.path }} {
+{% if basic_auth and basic_auth_scope == 'frontend_only' %}
+        auth_basic off;
+{% endif %}
         proxy_pass         http://127.0.0.1:{{ pp.port }}/;
         proxy_http_version 1.1;
         proxy_set_header   Host              $host;
@@ -79,6 +82,9 @@ WS_PATHS_BLOCK = """
 {% for ws in ws_paths %}
     # ── WebSocket: {{ ws.path }} → :{{ ws.port }}{{ ws.upstream_path }} {{ '(' + ws.description + ')' if ws.description else '' }}
     location {{ ws.path }} {
+{% if basic_auth and basic_auth_scope == 'frontend_only' %}
+        auth_basic off;
+{% endif %}
         proxy_pass         http://127.0.0.1:{{ ws.port }}{{ ws.upstream_path }};
         proxy_http_version 1.1;
         proxy_set_header   Upgrade    $http_upgrade;
@@ -97,10 +103,11 @@ WS_PATHS_BLOCK = """
 {% endif %}
 """
 
-# Basic auth snippet (applied globally to the server block)
+# Basic auth snippet – applied at server level.
+# When scope is 'frontend_only', proxy/WS blocks override with `auth_basic off;`
 BASIC_AUTH_BLOCK = """
 {% if basic_auth %}
-    # HTTP Basic Authentication
+    # HTTP Basic Authentication (scope: {{ basic_auth_scope | default('whole_site') }})
     auth_basic           "{{ basic_auth_realm | default('Restricted Access') }}";
     auth_basic_user_file /etc/nginx/.htpasswd-{{ domain }};
 {% endif %}
@@ -527,6 +534,7 @@ def render_template(
     ws_paths: Optional[list] = None,
     basic_auth: bool = False,
     basic_auth_realm: str = "Restricted Access",
+    basic_auth_scope: str = "whole_site",
     **kwargs
 ) -> str:
     """
@@ -547,6 +555,9 @@ def render_template(
                           Example: [{"path": "/ws", "port": 8000, "upstream_path": "/ws", "description": "WebSocket"}]
         basic_auth:       Enable HTTP Basic Authentication.
         basic_auth_realm: Auth realm message shown to the user.
+        basic_auth_scope: 'whole_site' or 'frontend_only'.
+                          When 'frontend_only', proxy and WS location blocks
+                          get `auth_basic off;` so API/WS bypass auth.
     """
 
     # Select template based on type and SSL
@@ -570,6 +581,7 @@ def render_template(
         "ws_paths": ws_paths or [],
         "basic_auth": basic_auth,
         "basic_auth_realm": basic_auth_realm,
+        "basic_auth_scope": basic_auth_scope,
     }
 
     extra_proxy_rendered = _render_snippet(PROXY_PATHS_BLOCK, sub_context)

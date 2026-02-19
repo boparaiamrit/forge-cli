@@ -306,12 +306,17 @@ def _collect_ws_paths() -> list:
     return ws_paths
 
 
-def _collect_basic_auth(domain: str) -> dict:
+def _collect_basic_auth(domain: str, has_proxy_paths: bool = False, has_ws_paths: bool = False) -> dict:
     """
-    Interactively ask for HTTP Basic Auth credentials.
+    Interactively ask for HTTP Basic Auth credentials and scope.
 
-    Returns a dict with 'enabled', 'username', 'password', 'realm'
+    Returns a dict with 'enabled', 'username', 'password', 'realm', 'scope'
     or {'enabled': False}.
+
+    Scope values:
+        - 'whole_site'    : Auth required for every request
+        - 'frontend_only' : Auth for frontend (location /) only;
+                            API proxy and WebSocket paths are excluded
     """
     enable_auth = questionary.confirm(
         "Enable HTTP Basic Auth (password-protected access)?",
@@ -336,11 +341,35 @@ def _collect_basic_auth(domain: str) -> dict:
         default="Restricted Access",
     ).ask()
 
+    # ── Scope selection ───────────────────────────────────────────────────
+    scope = "frontend_only"  # sensible default
+
+    if has_proxy_paths or has_ws_paths:
+        scope_choice = questionary.select(
+            "  Where should Basic Auth apply?",
+            choices=[
+                {
+                    "name": "🌐 Frontend only (exclude API & WebSocket routes) — recommended",
+                    "value": "frontend_only",
+                },
+                {
+                    "name": "🔒 Entire site (protect everything, including API & WebSocket)",
+                    "value": "whole_site",
+                },
+            ],
+            default="🌐 Frontend only (exclude API & WebSocket routes) — recommended",
+        ).ask()
+        scope = scope_choice
+    else:
+        # No proxy/WS paths — scope doesn't matter, but still set it
+        scope = "whole_site"
+
     return {
         "enabled": True,
         "username": username,
         "password": password,
         "realm": realm or "Restricted Access",
+        "scope": scope,
     }
 
 
@@ -451,10 +480,15 @@ def create_site():
 
     # ── 6. Basic Auth ────────────────────────────────────────────────────────
     console.print("\n[bold cyan]── Access Control ──[/bold cyan]")
-    auth_config = _collect_basic_auth(domain)
+    auth_config = _collect_basic_auth(
+        domain,
+        has_proxy_paths=bool(proxy_paths),
+        has_ws_paths=bool(ws_paths),
+    )
     if auth_config["enabled"]:
         config["basic_auth"] = True
         config["basic_auth_realm"] = auth_config["realm"]
+        config["basic_auth_scope"] = auth_config.get("scope", "whole_site")
 
     # ── 7. Advanced options ──────────────────────────────────────────────────
     if questionary.confirm("Configure advanced options?", default=False).ask():
@@ -519,6 +553,7 @@ def create_site():
     if auth_config["enabled"]:
         extra_state["basic_auth"] = True
         extra_state["basic_auth_user"] = auth_config["username"]
+        extra_state["basic_auth_scope"] = auth_config.get("scope", "whole_site")
 
     save_site_state(
         domain=domain,
