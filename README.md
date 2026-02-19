@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
-  <a href="https://github.com/boparaiamrit/forge-cli/releases"><img src="https://img.shields.io/badge/version-0.10.0-green.svg" alt="Version"></a>
+  <a href="https://github.com/boparaiamrit/forge-cli/releases"><img src="https://img.shields.io/badge/version-0.11.0-green.svg" alt="Version"></a>
 </p>
 
 <p align="center">
@@ -42,6 +42,9 @@
 ### 🌐 Site Management
 - **Multi-Framework Support** - Next.js, Nuxt.js, PHP/Laravel, Static HTML
 - **Hardened Nginx Templates** - Production-ready configurations with security headers
+- **WebSocket Proxy** - Dedicated WS location blocks with Upgrade headers and 86400s keepalive
+- **Multiple Upstream Proxies** - Route URL prefixes to different backend ports (e.g., `/api/` → `:8000`)
+- **HTTP Basic Auth** - Optional password protection with auto-provisioned htpasswd files
 - **SSL Status Display** - See certificate status and expiration at a glance
 - **Health Checks** - DNS, HTTP, HTTPS, and SSL validation
 - **Live Log Viewing** - Real-time log streaming with color-coded output
@@ -207,7 +210,7 @@ forge
 ### Main Menu Options
 
 ```
-🔧 Forge CLI v0.10.1
+🔧 Forge CLI v0.11.0
 ─────────────────────────────────
 
 What would you like to do?
@@ -401,6 +404,34 @@ Domain: myapp.example.com
 Include www? Yes
 Site type: Next.js
 Port: 3000
+
+── Proxy Upstreams ──
+Add a reverse-proxy path? Yes
+  URL path: /api/
+  Upstream port: 8000
+  Description: REST API
+  ✓ Added: /api/ → :8000
+
+── WebSocket Proxy ──
+Add a WebSocket proxy path? Yes
+  Public WS path: /ws
+  Upstream port: 8000
+  Upstream path: /ws
+  ✓ Added WS: /ws → :8000/ws
+
+── Access Control ──
+Enable HTTP Basic Auth? Yes
+  Username: admin
+  Password: ********
+  Auth realm: Restricted Access
+
+┌──────────── ✅ Site Created ────────────┐
+│ Domain:    myapp.example.com            │
+│ Primary:   :3000                        │
+│ Proxy:     /api/ → :8000                │
+│ WebSocket: /ws → :8000/ws               │
+│ Basic Auth: admin                       │
+└─────────────────────────────────────────┘
 ```
 
 ### Site Listing
