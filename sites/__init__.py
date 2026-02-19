@@ -219,13 +219,167 @@ def detect_site_type(domain: str) -> tuple:
 # CREATE SITE
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _collect_proxy_paths() -> list:
+    """Interactively collect additional proxy path → port mappings."""
+    proxy_paths = []
+
+    while True:
+        add_proxy = questionary.confirm(
+            "Add a reverse-proxy path (e.g., /api/ → port 8000)?",
+            default=False,
+        ).ask()
+
+        if not add_proxy:
+            break
+
+        path = questionary.text(
+            "  URL path (must end with /):",
+            default="/api/",
+            validate=lambda x: len(x) > 1 and x.endswith("/"),
+        ).ask()
+
+        port = questionary.text(
+            "  Upstream port:",
+            default="8000",
+            validate=lambda x: x.isdigit() and 1000 <= int(x) <= 65535,
+        ).ask()
+
+        desc = questionary.text(
+            "  Description (optional):",
+            default="",
+        ).ask()
+
+        proxy_paths.append({
+            "path": path,
+            "port": int(port),
+            "description": desc or None,
+        })
+        print_success(f"  Added: {path} → :{port}")
+
+    return proxy_paths
+
+
+def _collect_ws_paths() -> list:
+    """Interactively collect WebSocket proxy paths."""
+    ws_paths = []
+
+    while True:
+        add_ws = questionary.confirm(
+            "Add a WebSocket proxy path (e.g., /ws → port 8000)?",
+            default=False,
+        ).ask()
+
+        if not add_ws:
+            break
+
+        path = questionary.text(
+            "  Public WS path:",
+            default="/ws",
+            validate=lambda x: len(x) > 0 and x.startswith("/"),
+        ).ask()
+
+        port = questionary.text(
+            "  Upstream port:",
+            default="8000",
+            validate=lambda x: x.isdigit() and 1000 <= int(x) <= 65535,
+        ).ask()
+
+        upstream_path = questionary.text(
+            "  Upstream path (what Nginx forwards to):",
+            default=path,
+            validate=lambda x: len(x) > 0 and x.startswith("/"),
+        ).ask()
+
+        desc = questionary.text(
+            "  Description (optional):",
+            default="",
+        ).ask()
+
+        ws_paths.append({
+            "path": path,
+            "port": int(port),
+            "upstream_path": upstream_path,
+            "description": desc or None,
+        })
+        print_success(f"  Added WS: {path} → :{port}{upstream_path}")
+
+    return ws_paths
+
+
+def _collect_basic_auth(domain: str) -> dict:
+    """
+    Interactively ask for HTTP Basic Auth credentials.
+
+    Returns a dict with 'enabled', 'username', 'password', 'realm'
+    or {'enabled': False}.
+    """
+    enable_auth = questionary.confirm(
+        "Enable HTTP Basic Auth (password-protected access)?",
+        default=False,
+    ).ask()
+
+    if not enable_auth:
+        return {"enabled": False}
+
+    username = questionary.text(
+        "  Username:",
+        validate=lambda x: len(x) >= 2,
+    ).ask()
+
+    password = questionary.password(
+        "  Password:",
+        validate=lambda x: len(x) >= 6,
+    ).ask()
+
+    realm = questionary.text(
+        "  Auth realm message:",
+        default="Restricted Access",
+    ).ask()
+
+    return {
+        "enabled": True,
+        "username": username,
+        "password": password,
+        "realm": realm or "Restricted Access",
+    }
+
+
+def _provision_htpasswd(domain: str, username: str, password: str) -> bool:
+    """Create the htpasswd file on the server using openssl."""
+    htpasswd_path = f"/etc/nginx/.htpasswd-{domain}"
+
+    # Generate bcrypt-like hash via openssl (available everywhere)
+    code, hashed, stderr = run_command(
+        f"openssl passwd -apr1 '{password}'",
+        check=False,
+    )
+
+    if code != 0:
+        print_error(f"Failed to hash password: {stderr}")
+        return False
+
+    hashed = hashed.strip()
+    entry = f"{username}:{hashed}"
+
+    # Write via temp file (sudo required for /etc/nginx/)
+    temp_path = f"/tmp/.htpasswd-{domain}"
+    with open(temp_path, "w") as f:
+        f.write(entry + "\n")
+
+    run_command(f"sudo mv {temp_path} {htpasswd_path}", check=False)
+    run_command(f"sudo chmod 640 {htpasswd_path}", check=False)
+    run_command(f"sudo chown root:www-data {htpasswd_path}", check=False)
+
+    return True
+
+
 def create_site():
     """Create a new site interactively with hardened configuration."""
     clear_screen()
     print_header()
     print_breadcrumb(["Main", "Manage Sites", "Create"])
 
-    # Select site type
+    # ── 1. Site type ──────────────────────────────────────────────────────────
     type_choices = get_template_types()
     site_type = questionary.select(
         "Select site type:",
@@ -236,7 +390,7 @@ def create_site():
     if not site_type:
         return
 
-    # Get domain name
+    # ── 2. Domain ─────────────────────────────────────────────────────────────
     domain = questionary.text(
         "Enter domain name (e.g., example.com):",
         validate=lambda x: len(x) > 0 and "." in x,
@@ -245,13 +399,12 @@ def create_site():
     if not domain:
         return
 
-    # Include www?
     include_www = questionary.confirm(
         f"Include www.{domain}?",
         default=True,
     ).ask()
 
-    # Type-specific configuration
+    # ── 3. Type-specific configuration ────────────────────────────────────────
     config = {
         "domain": domain,
         "www": include_www,
@@ -284,7 +437,26 @@ def create_site():
         ).ask()
         config["document_root"] = doc_root
 
-    # Advanced options
+    # ── 4. Additional proxy paths (/api/ → port) ────────────────────────────
+    console.print("\n[bold cyan]── Proxy Upstreams ──[/bold cyan]")
+    proxy_paths = _collect_proxy_paths()
+    if proxy_paths:
+        config["proxy_paths"] = proxy_paths
+
+    # ── 5. WebSocket paths (/ws → port) ──────────────────────────────────────
+    console.print("\n[bold cyan]── WebSocket Proxy ──[/bold cyan]")
+    ws_paths = _collect_ws_paths()
+    if ws_paths:
+        config["ws_paths"] = ws_paths
+
+    # ── 6. Basic Auth ────────────────────────────────────────────────────────
+    console.print("\n[bold cyan]── Access Control ──[/bold cyan]")
+    auth_config = _collect_basic_auth(domain)
+    if auth_config["enabled"]:
+        config["basic_auth"] = True
+        config["basic_auth_realm"] = auth_config["realm"]
+
+    # ── 7. Advanced options ──────────────────────────────────────────────────
     if questionary.confirm("Configure advanced options?", default=False).ask():
         max_body = questionary.text(
             "Max upload size (e.g., 100M):",
@@ -292,7 +464,7 @@ def create_site():
         ).ask()
         config["max_body_size"] = max_body
 
-    # Generate config using hardened template
+    # ── 8. Generate & preview ────────────────────────────────────────────────
     rendered = render_template(site_type=site_type, **config)
 
     console.print("\n[bold]Generated Configuration:[/bold]")
@@ -301,17 +473,23 @@ def create_site():
     if not confirm_action("Create this site?", default=True):
         return
 
-    # Write config file
+    # ── 9. Write config file ─────────────────────────────────────────────────
     config_path = f"{SITES_AVAILABLE}/{domain}"
 
-    # Write to temp file first, then move with sudo
     temp_path = f"/tmp/{domain}.conf"
     with open(temp_path, "w") as f:
         f.write(rendered)
 
     run_command(f"sudo mv {temp_path} {config_path}", check=False)
 
-    # Create document root if needed
+    # ── 10. Provision htpasswd for basic auth ────────────────────────────────
+    if auth_config["enabled"]:
+        if _provision_htpasswd(domain, auth_config["username"], auth_config["password"]):
+            print_success(f"Basic auth configured for {auth_config['username']}")
+        else:
+            print_warning("Basic auth htpasswd creation failed — site will 500 until fixed")
+
+    # ── 11. Create document root if needed ───────────────────────────────────
     if "document_root" in config:
         run_command(f"sudo mkdir -p {config['document_root']}", check=False)
         run_command(f"sudo chown -R www-data:www-data {config['document_root']}", check=False)
@@ -320,20 +498,28 @@ def create_site():
     run_command(f"sudo touch /var/log/nginx/{domain}.access.log", check=False)
     run_command(f"sudo touch /var/log/nginx/{domain}.error.log", check=False)
 
-    # Enable site
+    # ── 12. Enable site ──────────────────────────────────────────────────────
     run_command(f"sudo ln -sf {config_path} {SITES_ENABLED}/{domain}", check=False)
 
     # Test and reload nginx
     code, _, stderr = run_command("sudo nginx -t", check=False)
     if code != 0:
         print_error(f"Nginx config test failed: {stderr}")
-        # Disable the problematic site
         run_command(f"sudo rm -f {SITES_ENABLED}/{domain}", check=False)
         return
 
     run_command("sudo systemctl reload nginx", check=False)
 
-    # Save state
+    # ── 13. Save state ───────────────────────────────────────────────────────
+    extra_state = {}
+    if proxy_paths:
+        extra_state["proxy_paths"] = proxy_paths
+    if ws_paths:
+        extra_state["ws_paths"] = ws_paths
+    if auth_config["enabled"]:
+        extra_state["basic_auth"] = True
+        extra_state["basic_auth_user"] = auth_config["username"]
+
     save_site_state(
         domain=domain,
         site_type=site_type,
@@ -342,9 +528,29 @@ def create_site():
         document_root=config.get("document_root"),
         php_version=config.get("php_version"),
         enabled=True,
+        extra=extra_state if extra_state else None,
     )
 
     print_success(f"Site {domain} created and enabled!")
+
+    # ── 14. Summary ──────────────────────────────────────────────────────────
+    summary_lines = [f"[bold]Domain:[/bold] {domain}"]
+    if config.get("port"):
+        summary_lines.append(f"[bold]Primary port:[/bold] {config['port']}")
+    if proxy_paths:
+        for pp in proxy_paths:
+            summary_lines.append(f"[bold]Proxy:[/bold] {pp['path']} → :{pp['port']}")
+    if ws_paths:
+        for ws in ws_paths:
+            summary_lines.append(f"[bold]WebSocket:[/bold] {ws['path']} → :{ws['port']}{ws['upstream_path']}")
+    if auth_config["enabled"]:
+        summary_lines.append(f"[bold]Basic Auth:[/bold] {auth_config['username']}")
+
+    console.print(Panel(
+        "\n".join(summary_lines),
+        title="✅ Site Created",
+        border_style="green",
+    ))
 
     # Ask about SSL
     if questionary.confirm("Would you like to set up SSL now?", default=True).ask():

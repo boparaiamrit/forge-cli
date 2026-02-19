@@ -5,6 +5,28 @@ All notable changes to Forge CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-02-20
+
+### Added
+- **WebSocket Proxy Support** — Add dedicated WebSocket location blocks during site creation
+  - Configurable public path (e.g., `/ws`) and upstream port/path
+  - Proper `Upgrade`/`Connection` headers and 86400s keepalive timeouts
+  - Multiple WS paths per site supported
+- **Additional Proxy Upstreams** — Add extra reverse-proxy path→port mappings
+  - Route different URL prefixes to different backend ports (e.g., `/api/` → `:8000`)
+  - Descriptions saved in state for easy identification
+  - Multiple proxy entries per site supported
+- **HTTP Basic Auth** — Optionally protect sites with username/password
+  - Interactive credential collection during site creation
+  - Automatic htpasswd file provisioning via openssl (`/etc/nginx/.htpasswd-<domain>`)
+  - Credentials and realm saved in site state
+- Site creation summary panel showing all configured routes and auth
+
+### Changed
+- Nginx templates refactored to use Jinja2 sub-blocks for proxy, WS, and auth snippets
+- `render_template()` now accepts `proxy_paths`, `ws_paths`, `basic_auth`, and `basic_auth_realm`
+- Site state now persists `proxy_paths`, `ws_paths`, and `basic_auth` metadata
+
 ## [0.10.1] - 2026-02-01
 
 ### Added
