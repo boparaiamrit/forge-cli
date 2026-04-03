@@ -14,11 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Grant database access
   - Reset user passwords
   - Delete databases and users with confirmation
+  - Filter system databases and users from routine list views
 
 ### Changed
 - **PHP Version Parity** - Site creation and provisioning now share the same supported PHP version list
   - Added PHP 8.4 and 8.5 to site creation choices
   - Centralized supported PHP versions in shared config
+  - Site creation now defaults to the server default PHP version when supported
 
 ## [0.12.0] - 2026-02-20
 

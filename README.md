@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
-  <a href="https://github.com/boparaiamrit/forge-cli/releases"><img src="https://img.shields.io/badge/version-0.11.0-green.svg" alt="Version"></a>
+  <a href="https://github.com/boparaiamrit/forge-cli/releases"><img src="https://img.shields.io/badge/version-0.13.0-green.svg" alt="Version"></a>
 </p>
 
 <p align="center">
@@ -32,6 +32,7 @@
 
 ### 🐘 PHP Management
 - **Multiple PHP Versions** - Install and manage PHP 8.5, 8.4, 8.3, 8.2, 8.1, 8.0, 7.4
+- **Shared PHP Version Parity** - Site creation and provisioning use the same supported PHP version list
 - **Extension Bundles** - Pre-configured bundles for Laravel, WordPress, and more
 - **40+ Extensions** - Install any PHP extension with descriptions and categories
 - **Smart Pool Configuration** - Dynamic FPM settings based on server RAM/swap
@@ -41,6 +42,7 @@
 
 ### 🌐 Site Management
 - **Multi-Framework Support** - Next.js, Nuxt.js, PHP/Laravel, Static HTML
+- **Modern PHP Site Selection** - PHP sites can target 8.5, 8.4, 8.3, 8.2, 8.1, 8.0, or 7.4
 - **Hardened Nginx Templates** - Production-ready configurations with security headers
 - **WebSocket Proxy** - Dedicated WS location blocks with Upgrade headers and 86400s keepalive
 - **Multiple Upstream Proxies** - Route URL prefixes to different backend ports (e.g., `/api/` → `:8000`)
@@ -63,6 +65,13 @@
 - **Quick Actions** - Restart all PHP-FPM, restart web servers, reload all
 - **Boot Management** - Enable/disable services on boot
 - **Memory & Uptime** - See resource usage and uptime per service
+
+### 🗄️ Database Management
+- **Multi-Engine Support** - Manage PostgreSQL, MySQL, and MariaDB from the CLI
+- **Database CRUD** - List, create, and delete application databases with confirmation
+- **User Management** - List, create, reset passwords, and delete database users
+- **Access Grants** - Grant users access to application databases without dropping to raw SQL
+- **System Filtering** - Hide system databases and users from routine list views
 
 ### 📊 Monitoring & Alerts
 - **Live Dashboard** - Real-time CPU, memory, disk, and load stats
@@ -210,13 +219,14 @@ forge
 ### Main Menu Options
 
 ```
-🔧 Forge CLI v0.11.0
+🔧 Forge CLI v0.13.0
 ─────────────────────────────────
 
 What would you like to do?
 ▶ 📊  System Status
   📦  Install Packages
   🐘  PHP Management
+  🗄️  Database Management
   ─────────────────────────────
   🌐  Manage Sites
   🔒  SSL Certificates
