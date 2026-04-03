@@ -28,6 +28,7 @@ from auditor import run_auditor_menu
 from cve import run_cve_menu
 from disk import run_disk_menu
 from alerts import run_alerts_menu
+from databases import run_databases_menu
 from updater import run_updater_menu, get_current_version, startup_update_check
 from state import get_recent_changes, export_lineage_report
 
@@ -41,6 +42,7 @@ MAIN_MENU_CHOICES = [
     {"name": "📊 System Status", "value": "status"},
     {"name": "📦 Install Packages", "value": "install"},
     {"name": "🐘 PHP Management", "value": "php"},
+    {"name": "🗄️ Database Management", "value": "databases"},
     questionary.Separator("─" * 30),
     {"name": "🌐 Manage Sites", "value": "sites"},
     {"name": "🔒 SSL Certificates", "value": "ssl"},
@@ -93,6 +95,8 @@ def handle_main_menu_choice(choice: str):
         run_installer_menu()
     elif choice == "php":
         run_php_menu()
+    elif choice == "databases":
+        run_databases_menu()
     elif choice == "sites":
         run_sites_menu()
     elif choice == "ssl":

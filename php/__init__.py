@@ -19,15 +19,13 @@ from utils.ui import (
 )
 from utils.shell import run_command, get_command_output, command_exists
 from state import add_pending_operation, complete_pending_operation, get_pending_operations
+from config.php_versions import PHP_VERSIONS
 
 console = Console()
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PHP DATA
 # ═══════════════════════════════════════════════════════════════════════════════
-
-# Available PHP versions (from Ondřej PPA)
-PHP_VERSIONS = ["8.5", "8.4", "8.3", "8.2", "8.1", "8.0", "7.4"]
 
 # Common PHP extensions with descriptions
 PHP_EXTENSIONS = {

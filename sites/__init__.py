@@ -16,6 +16,8 @@ from utils.ui import (
 )
 from utils.shell import run_command, get_command_output
 from nginx.templates import render_template, get_template_types
+from php import get_default_php_version
+from config.php_versions import PHP_VERSIONS
 from state import (
     save_site_state, delete_site_state, list_sites_state,
     update_site_ssl, check_ssl_status, get_site_state
@@ -25,6 +27,19 @@ console = Console()
 
 SITES_AVAILABLE = "/etc/nginx/sites-available"
 SITES_ENABLED = "/etc/nginx/sites-enabled"
+
+
+def get_php_version_choices() -> list[str]:
+    """Return the supported PHP versions for site creation."""
+    return PHP_VERSIONS.copy()
+
+
+def get_site_default_php_version() -> str:
+    """Prefer the server default PHP version when it is supported."""
+    default_version = get_default_php_version()
+    if default_version in PHP_VERSIONS:
+        return default_version
+    return PHP_VERSIONS[0]
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SITES MENU
@@ -457,7 +472,8 @@ def create_site():
         ).ask()
         php_version = questionary.select(
             "Select PHP version:",
-            choices=["8.3", "8.2", "8.1", "8.0"],
+            choices=get_php_version_choices(),
+            default=get_site_default_php_version(),
         ).ask()
         config["document_root"] = doc_root
         config["php_version"] = php_version

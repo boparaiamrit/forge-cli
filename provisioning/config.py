@@ -3,8 +3,7 @@ Server Provisioning Scripts — Based on Laravel Settler
 Complete server setup from scratch with security hardening
 """
 
-# PHP Versions and their extensions
-PHP_VERSIONS = ["8.1", "8.2", "8.3"]
+from config.php_versions import PHP_VERSIONS
 
 PHP_EXTENSIONS = [
     "bcmath", "bz2", "cgi", "cli", "common", "curl", "dba", "dev",

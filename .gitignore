@@ -164,3 +164,4 @@ sslcerts/*.key
 *.local
 .env.local
 .env.*.local
+.worktrees/

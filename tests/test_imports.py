@@ -15,6 +15,7 @@ def test_all_imports():
     from cve import run_cve_menu
     from disk import run_disk_menu
     from alerts import run_alerts_menu
+    from databases import run_databases_menu
     from updater import run_updater_menu
     from installers import run_installer_menu
 

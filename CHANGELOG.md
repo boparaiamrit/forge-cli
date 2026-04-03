@@ -5,6 +5,21 @@ All notable changes to Forge CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2026-04-03
+
+### Added
+- **Database Management** - New top-level menu for PostgreSQL, MySQL, and MariaDB administration
+  - List databases and users
+  - Create databases and users
+  - Grant database access
+  - Reset user passwords
+  - Delete databases and users with confirmation
+
+### Changed
+- **PHP Version Parity** - Site creation and provisioning now share the same supported PHP version list
+  - Added PHP 8.4 and 8.5 to site creation choices
+  - Centralized supported PHP versions in shared config
+
 ## [0.12.0] - 2026-02-20
 
 ### Added
