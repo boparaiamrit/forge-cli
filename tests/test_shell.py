@@ -50,8 +50,31 @@ class TestRunCommand:
 
         run_command("apt update", sudo=True)
 
-        call_args = mock_run.call_args[0][0]
-        assert call_args[0] == "sudo"
+        call_args = mock_run.call_args
+        assert call_args.args[0] == ["sudo", "apt", "update"]
+        assert call_args.kwargs["shell"] is False
+
+    @patch("subprocess.run")
+    def test_run_command_uses_shell_for_string_commands(self, mock_run):
+        """Should preserve shell syntax when command is a string."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="output", stderr="")
+
+        run_command("printf 'ok' | cat", check=False)
+
+        call_args = mock_run.call_args
+        assert call_args.args[0] == "printf 'ok' | cat"
+        assert call_args.kwargs["shell"] is True
+
+    @patch("subprocess.run")
+    def test_run_command_list_keeps_argv_execution(self, mock_run):
+        """Should keep argv execution for explicit argument lists."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="output", stderr="")
+
+        run_command(["echo", "test"], check=False)
+
+        call_args = mock_run.call_args
+        assert call_args.args[0] == ["echo", "test"]
+        assert call_args.kwargs["shell"] is False
 
     def test_run_command_not_found(self):
         """Should handle command not found."""

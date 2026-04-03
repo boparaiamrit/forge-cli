@@ -4,10 +4,13 @@ Shell Utilities - Command execution helpers
 
 import subprocess
 import shutil
+import shlex
 from typing import Optional, Tuple
 from rich.console import Console
 
 console = Console()
+
+SHELL_OPERATORS = ("|", "&", ";", "<", ">", "$", "`")
 
 
 def run_command(
@@ -29,25 +32,35 @@ def run_command(
         Tuple of (return_code, stdout, stderr)
     """
     if isinstance(command, str):
-        cmd_list = command.split()
+        shell = any(operator in command for operator in SHELL_OPERATORS)
+        if shell:
+            cmd = command
+            if sudo and not cmd.lstrip().startswith("sudo "):
+                cmd = f"sudo {cmd}"
+        else:
+            cmd = shlex.split(command)
+            if sudo and cmd[0] != "sudo":
+                cmd = ["sudo"] + cmd
     else:
-        cmd_list = command
-
-    if sudo and cmd_list[0] != "sudo":
-        cmd_list = ["sudo"] + cmd_list
+        shell = False
+        cmd = command
+        if sudo and cmd[0] != "sudo":
+            cmd = ["sudo"] + cmd
 
     try:
         result = subprocess.run(
-            cmd_list,
+            cmd,
             capture_output=capture,
             text=True,
             check=check,
+            shell=shell,
         )
         return result.returncode, result.stdout.strip(), result.stderr.strip()
     except subprocess.CalledProcessError as e:
         return e.returncode, e.stdout or "", e.stderr or ""
     except FileNotFoundError:
-        return 127, "", f"Command not found: {cmd_list[0]}"
+        missing_command = cmd.split()[0] if isinstance(cmd, str) else cmd[0]
+        return 127, "", f"Command not found: {missing_command}"
 
 
 def command_exists(command: str) -> bool:
